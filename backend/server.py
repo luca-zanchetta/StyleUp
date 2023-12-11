@@ -128,7 +128,16 @@ def delete_post():
 ############################## FRIENDS MANAGEMENT APIs ################################
 @app.route('/getUserByUsername', methods=['GET'])
 def get_user_by_username():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    username = request.args.get('username')
+    
+    query = f"SELECT * from Person WHERE username REGEXP '{username}.*'"
+    curr.execute(query)
+    result = curr.fetchall()
+    
+    for user in result:
+        return jsonify({'user':user, 'status':200})
+    
+    return jsonify({'user':[], 'status':404})
 
 
 @app.route('/getNotifications', methods=['GET'])

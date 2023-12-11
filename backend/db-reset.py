@@ -12,6 +12,7 @@ cursor = mydb.cursor()
 try:
     cursor.execute('DROP DATABASE IF EXISTS styleup;')
     cursor.execute('CREATE DATABASE IF NOT EXISTS styleup;')
+    mydb.commit()
     print('[INFO] Database \'styleup\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the database \'styleup\': '+err)
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS Person (
 try:
     mycursor.execute(person_drop)
     mycursor.execute(person_table)
+    mydb.commit()
     print('[INFO] Table \'Person\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the table \'Person\': '+err)
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS Shirt (
 try:
     mycursor.execute(shirt_drop)
     mycursor.execute(shirt_table)
+    mydb.commit()
     print('[INFO] Table \'Shirt\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the table \'Shirt\': '+err)
@@ -79,6 +82,7 @@ CREATE TABLE IF NOT EXISTS Notification (
 try:
     mycursor.execute(notification_drop)
     mycursor.execute(notification_table)
+    mydb.commit()
     print('[INFO] Table \'Notification\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the table \'Notification\': '+err)
@@ -106,6 +110,7 @@ CREATE TABLE IF NOT EXISTS Friend_of (
 try:
     mycursor.execute(friend_of_drop)
     mycursor.execute(friend_of_table)
+    mydb.commit()
     print('[INFO] Table \'Friend_of\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the table \'Friend_of\': '+err)
@@ -130,6 +135,7 @@ CREATE TABLE IF NOT EXISTS Post (
 try:
     mycursor.execute(post_drop)
     mycursor.execute(post_table)
+    mydb.commit()
     print('[INFO] Table \'Post\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the table \'Post\': '+err)
@@ -154,6 +160,7 @@ CREATE TABLE IF NOT EXISTS Likes (
 try:
     mycursor.execute(likes_drop)
     mycursor.execute(likes_table)
+    mydb.commit()
     print('[INFO] Table \'Likes\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+err)

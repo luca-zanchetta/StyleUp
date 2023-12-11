@@ -16,6 +16,17 @@ def before_request():
             "Access-Control-Allow-Credentials": "true",
         }
         return ("", 200, headers)
+    
+
+# DB setup
+mydb = mysql.connector.connect(
+    host='localhost',
+    user='root',
+    password='mysql',
+    database='styleup'
+)
+curr = mydb.cursor()
+
 
 @app.route('/')
 def fetch():
@@ -25,22 +36,80 @@ def fetch():
 ############################ ACCOUNT MANAGEMENT APIs #####################################
 @app.route('/register', methods=['POST'])
 def create_account():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    username = data['username']
+    email = data['email']
+    password = data['password']
+    
+    # The check about whether the username is correct or not is entirely done by the DBMS
+    query = 'INSERT INTO Person (username, email, password) VALUES (%s, %s, %s)'
+    values = (username, email, password,)
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while inserting the new person: '+str(err))
+        return jsonify({'message':'ERROR: The username is not valid.', 'status':400})
+    
+    return jsonify({"message":"You have registered successfully!", "status":200})
 
 
 @app.route('/login', methods=['POST'])
 def login():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    username = data['username']
+    password = data['password']
+    
+    query = 'SELECT username, password FROM Person WHERE username = %s'
+    values = (username,)
+    curr.execute(query, values)
+    result = curr.fetchall()
+    
+    for elem in result:
+        if elem[1] == password:
+            return jsonify({'message':'Login successfully performed!', 'status':200})
+        elif elem[2] != password:
+            return jsonify({'message':'ERROR: Wrong username and/or password.', 'status':400})
+    
+    # If we get here, the username is wrong
+    return jsonify({'message':'ERROR: Wrong username and/or password.', 'status':400})
 
 
 @app.route('/updateAccount', methods=['POST'])
 def update_account():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    old_username = data['old_username']
+    username = data['username']
+    email = data['email']
+    password = data['password']
+    
+    query = 'UPDATE Person SET username = %s, email = %s, password = %s WHERE username = %s'
+    values = (username, email, password, old_username)
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while modifying the account: '+str(err))
+        return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
+        
+    return jsonify({"message":"Your data was modified successfully!", "status":200})
 
 
 @app.route('/deleteAccount', methods=['POST'])
 def delete_account():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    username = data['username']
+    
+    query = 'DELETE FROM Person WHERE username = %s'
+    values = (username,)
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while deleting the account: '+str(err))
+        return jsonify({'message':'ERROR: Delete operation was not successfully performed.', 'status':500})
+    
+    return jsonify({'message':'Your account was successfully deleted!', 'status':200})
 
 
 ########################## PICTURES & POSTS MANAGEMENT APIs ##############################

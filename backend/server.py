@@ -1,6 +1,7 @@
 import mysql.connector
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -42,7 +43,7 @@ def create_account():
     password = data['password']
     
     # The check about whether the username is correct or not is entirely done by the DBMS
-    query = 'INSERT INTO Person (username, email, password) VALUES (%s, %s, %s)'
+    query = 'INSERT INTO Person (username, email, password) VALUES (%s, %s, %s);'
     values = (username, email, password,)
     try:
         curr.execute(query, values)
@@ -60,7 +61,7 @@ def login():
     username = data['username']
     password = data['password']
     
-    query = 'SELECT username, password FROM Person WHERE username = %s'
+    query = 'SELECT username, password FROM Person WHERE username = %s;'
     values = (username,)
     curr.execute(query, values)
     result = curr.fetchall()
@@ -83,7 +84,7 @@ def update_account():
     email = data['email']
     password = data['password']
     
-    query = 'UPDATE Person SET username = %s, email = %s, password = %s WHERE username = %s'
+    query = 'UPDATE Person SET username = %s, email = %s, password = %s WHERE username = %s;'
     values = (username, email, password, old_username)
     try:
         curr.execute(query, values)
@@ -100,7 +101,7 @@ def delete_account():
     data = request.get_json()
     username = data['username']
     
-    query = 'DELETE FROM Person WHERE username = %s'
+    query = 'DELETE FROM Person WHERE username = %s;'
     values = (username,)
     try:
         curr.execute(query, values)
@@ -115,13 +116,43 @@ def delete_account():
 ########################## PICTURES & POSTS MANAGEMENT APIs ##############################
 @app.route('/createPost', methods=['POST'])
 def create_post():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    username = data['username']
+    shirt_id = data['shirt']
+    image_data = data['image']
+    
+    timestamp = datetime.now()
+    timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    
+    query = 'INSERT INTO Post (username, shirt, image_data, timestamp) VALUES (%s, %s, %s, %s);'
+    values = (username, shirt_id, image_data, timestamp)
+    
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while creating the post: '+str(err))
+        return jsonify({'message':'ERROR: Create post operation was not successfully performed.', 'status':500})
+    
+    return jsonify({"message":"The post was successfully created!", "status":200})
 
 
 @app.route('/deletePost', methods=['POST'])
 def delete_post():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
-
+    data = request.get_json()
+    post_id = data['post']
+    
+    query = 'DELETE FROM Post WHERE id = %s;'
+    values = (post_id,)
+    
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while deleting the post: '+str(err))
+        return jsonify({'message':'ERROR: Delete post operation was not successfully performed.', 'status':500})
+    
+    return jsonify({"message":"The post was successfully deleted!", "status":200})
 
 # Maybe there should be another api for the shirt try-on, but I don't know
 
@@ -130,7 +161,7 @@ def delete_post():
 def get_user_by_username():
     username = request.args.get('username')
     
-    query = f"SELECT * from Person WHERE username REGEXP '{username}.*'"
+    query = f"SELECT * from Person WHERE username REGEXP '{username}.*';"
     curr.execute(query)
     result = curr.fetchall()
     
@@ -142,7 +173,19 @@ def get_user_by_username():
 
 @app.route('/getNotifications', methods=['GET'])
 def get_notifications():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    username = request.args.get('username')
+    notifications = []
+    
+    query = 'SELECT * FROM Notification WHERE username = %s;'
+    values = (username,)
+    
+    curr.execute(query, values)
+    result = curr.fetchall()
+    
+    for elem in result:
+        notifications.append(elem)
+    
+    return jsonify({'notifications':notifications, "status":200})
 
 
 @app.route('/sendFriendshipRequest', methods=['POST'])
@@ -178,12 +221,38 @@ def get_posts_by_username():
 ########################### INTERACTIONS MANAGEMENT APIs #################################
 @app.route('/likePost', methods=['POST'])
 def like_post():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    username = data['username']
+    post_id = data['post']
+    
+    query = 'INSERT INTO Likes (person, post) VALUES (%s, %s);'
+    values = (username, post_id)
+    
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while inserting the like: '+str(err))
+        return jsonify({'message':'ERROR: Like operation was not successfully performed.', 'status':500})
+    
+    return jsonify({"message":"You liked the post successfully!", "status":200})
 
 
 @app.route('/getLikesByPost', methods=['GET'])
 def get_likes_by_post():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    post_id = request.args.get('post')
+    usernames = []
+    
+    query = 'SELECT person FROM Likes WHERE post = %s;'
+    values = (post_id,)
+    
+    curr.execute(query, values)
+    result = curr.fetchall()
+    
+    for elem in result:
+        usernames.append(elem[0])
+    
+    return jsonify({"likes":usernames, "n_likes":len(usernames), "status":200})
 
 
 

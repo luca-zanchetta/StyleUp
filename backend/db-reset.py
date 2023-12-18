@@ -72,12 +72,18 @@ CREATE TABLE IF NOT EXISTS Notification (
     id INT AUTO_INCREMENT PRIMARY KEY,
     type VARCHAR(100) NOT NULL,
     text VARCHAR(255) NOT NULL,
-    username VARCHAR(100) NOT NULL,
-    FOREIGN KEY (username) 
+    username_from VARCHAR(100) NOT NULL,
+    username_to VARCHAR(100) NOT NULL,
+    FOREIGN KEY (username_from) 
+        REFERENCES Person (username)
+        ON DELETE CASCADE,
+    FOREIGN KEY (username_to)
         REFERENCES Person (username)
         ON DELETE CASCADE,
     CONSTRAINT type_constraint 
-        CHECK (type='like' OR type='friendship_request')
+        CHECK (type='like' OR type='friendship_request'),
+    CONSTRAINT usernames_constraint
+        CHECK (username_from <> username_to)
 );
 '''
 try:
@@ -125,7 +131,6 @@ CREATE TABLE IF NOT EXISTS Post (
     username VARCHAR(100) NOT NULL,
     shirt INT NOT NULL,
     image_data LONGBLOB NOT NULL,
-    image_name VARCHAR(100),
     timestamp DATETIME NOT NULL,
     FOREIGN KEY (username) 
         REFERENCES Person (username)

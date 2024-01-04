@@ -193,27 +193,27 @@ def send_friendship_request():
     return jsonify({"message":"WORK IN PROGRESS...", "status":202})
 
 
-@app.route('/acceptFriendshipRequest', methods=['POST'])
+@app.route('/acceptFriendshipRequest', methods=['POST'])     # ok
 def accept_friendship_request():
     return jsonify({"message":"WORK IN PROGRESS...", "status":202})
 
 
-@app.route('/refuseFriendshipRequest', methods=['POST'])
+@app.route('/refuseFriendshipRequest', methods=['POST'])    # ok
 def refuse_friendship_request():
     return jsonify({"message":"WORK IN PROGRESS...", "status":202})
 
 
-@app.route('/removeFriend', methods=['POST'])
+@app.route('/removeFriend', methods=['POST'])   # ok
 def remove_friend():
     return jsonify({"message":"WORK IN PROGRESS...", "status":202})
 
 
-@app.route('/getFriendsPosts', methods=['GET'])
+@app.route('/getFriendsPosts', methods=['GET']) # ok
 def get_friends_posts():
     return jsonify({"message":"WORK IN PROGRESS...", "status":202})
 
 
-@app.route('/getPostsByUsername', methods=['GET'])
+@app.route('/getPostsByUsername', methods=['GET'])  # ok
 def get_posts_by_username():
     return jsonify({"message":"WORK IN PROGRESS...", "status":202})
 

@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/createAccountTitle"
         android:layout_marginTop="16dp"
-        android:hint="Name"/>
+        android:hint="Username"/>
 
     <EditText
         android:id="@+id/editTextEmailCreate"

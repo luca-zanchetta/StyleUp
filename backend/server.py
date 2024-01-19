@@ -2,6 +2,7 @@ import mysql.connector
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime
+from utilities import get_timestamp
 
 app = Flask(__name__)
 CORS(app)
@@ -190,32 +191,193 @@ def get_notifications():
 
 @app.route('/sendFriendshipRequest', methods=['POST'])
 def send_friendship_request():
+    data = request.get_json()
+    username_from = data['username_from']
+    username_to = data['username_to']
+
+    # Register Notification
+    query_notification = 'INSERT INTO Notification (type, text, username_from, username_to) VALUES (%s, %s, %s, %s);'
+    values_notification = ('friendship_request', f'{username_from} wants to be your friend!', username_from, username_to,)
+
+    try:
+        curr.execute(query_notification, values_notification)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while sending the friendship request: '+str(err))
+        return jsonify({'message':'ERROR: Send friendship request operation was not successfully performed.', 'status':500})
+    
+
+    # Register pending state in friend_of
+    query_friend_of = 'INSERT INTO Friend_of (person1, person2, pending) VALUES (%s, %s, %s);'
+    values_friend_of = (username_from, username_to, True)
+    
+    try:
+        curr.execute(query_friend_of, values_friend_of)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while sending the friendship request: '+str(err))
+        return jsonify({'message':'ERROR: Send friendship request operation was not successfully performed.', 'status':500})
+    
+
+    # TODO Send notification to user
+
+
     return jsonify({"message":"WORK IN PROGRESS...", "status":202})
 
 
-@app.route('/acceptFriendshipRequest', methods=['POST'])     # ok
+@app.route('/acceptFriendshipRequest', methods=['POST'])
 def accept_friendship_request():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    notification_id = data['id']
+    username_from = None
+    username_to = None
 
 
-@app.route('/refuseFriendshipRequest', methods=['POST'])    # ok
+    # Retrieve usernames from notification
+    query_notification = 'SELECT username_from, username_to FROM Notification WHERE id = %s;'
+    values_notification = (notification_id,)
+
+    curr.execute(query_notification, values_notification)
+    result = curr.fetchone()
+    if result is not None:
+        username_from = result[0]
+        username_to = result[1]
+    
+
+    # Update pending status in Friend_of
+    query_friend_of = 'UPDATE Friend_of SET pending = %s WHERE (person1 = %s AND person2 = %s) OR (person1 = %s AND person2 = %s);'
+    values_friend_of = (False, username_from, username_to, username_to, username_from,)
+    try:
+        curr.execute(query_friend_of, values_friend_of)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while accepting the friendship request: '+str(err))
+        return jsonify({'message':'ERROR: Accept friendship request operation was not successfully performed.', 'status':500})
+
+    return jsonify({"message":f"{username_from} and {username_to} are now friends!", "status":200})
+
+
+@app.route('/refuseFriendshipRequest', methods=['POST'])
 def refuse_friendship_request():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    notification_id = data['id']
+    username_from = None
+    username_to = None
 
 
-@app.route('/removeFriend', methods=['POST'])   # ok
+    # Retrieve usernames from notification
+    query_notification = 'SELECT username_from, username_to FROM Notification WHERE id = %s;'
+    values_notification = (notification_id,)
+
+    curr.execute(query_notification, values_notification)
+    result = curr.fetchone()
+    if result is not None:
+        username_from = result[0]
+        username_to = result[1]
+    
+
+    # Delete corresponding row in Friend_of
+    query_friend_of = 'DELETE FROM Friend_of WHERE (person1 = %s AND person2 = %s) OR (person1 = %s AND person2 = %s);'
+    values_friend_of = (username_from, username_to, username_to, username_from,)
+    try:
+        curr.execute(query_friend_of, values_friend_of)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while refusing the friendship request: '+str(err))
+        return jsonify({'message':'ERROR: Refuse friendship request operation was not successfully performed.', 'status':500})
+
+    return jsonify({"message":"Friendship request has been successfully refused.", "status":200})
+
+
+@app.route('/removeFriend', methods=['POST'])
 def remove_friend():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    data = request.get_json()
+    username_from = data['username_from']
+    username_to = data['username_to']
+
+    # Remove friendship
+    query_friend_of = 'DELETE FROM Friend_of WHERE (person1 = %s AND person2 = %s) OR (person1 = %s AND person2 = %s);'
+    values_friend_of = (username_from, username_to, username_to, username_from,)
+    try:
+        curr.execute(query_friend_of, values_friend_of)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while removing the friendship: '+str(err))
+        return jsonify({'message':'ERROR: Remove friendship operation was not successfully performed.', 'status':500})
+
+    return jsonify({"message":f"{username_from} and {username_to} are no longer friends.", "status":200})
 
 
-@app.route('/getFriendsPosts', methods=['GET']) # ok
+@app.route('/getFriendsPosts', methods=['GET'])
 def get_friends_posts():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    username = request.args.get('username')
+    friends = []
+    posts = []
+
+    # Get friends (bilateral relation!)
+    query_friend_of = 'SELECT person1 FROM Friend_of WHERE person2 = %s AND pending = %s;'
+    values_friend_of = (username, False,)
+    curr.execute(query_friend_of, values_friend_of)
+    result = curr.fetchall()
+
+    for elem in result:
+        friends.append(elem[0])
+
+    query_friend_of = 'SELECT person2 FROM Friend_of WHERE person1 = %s AND pending = %s;'
+    values_friend_of = (username, False,)
+    curr.execute(query_friend_of, values_friend_of)
+    result = curr.fetchall()
+
+    for elem in result:
+        friends.append(elem[0])
+
+    if len(friends) == 0:
+        return jsonify({"message":"No friends found for that username.", "status":404})
 
 
-@app.route('/getPostsByUsername', methods=['GET'])  # ok
+    # For each friend, get posts
+    for friend_username in friends:
+        query = 'SELECT id, image_data, timestamp FROM Post WHERE username = %s;'
+        values = (friend_username,)
+
+        curr.execute(query, values)
+        result = curr.fetchall()
+
+        for elem in result:
+            posts.append(elem)
+        
+    if len(posts) == 0:
+        return jsonify({"message":"No posts found.", "status":404})
+        
+
+    # Order the posts by temporal order
+    sorted_posts = sorted(posts, key=get_timestamp)
+
+    return jsonify({"posts":sorted_posts, "status":200})
+
+
+@app.route('/getPostsByUsername', methods=['GET'])
 def get_posts_by_username():
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    username = request.args.get('username')
+    posts = []
+
+    # Get posts
+    query = 'SELECT id, image_data, timestamp FROM Post WHERE username = %s;'
+    values = (username,)
+
+    curr.execute(query, values)
+    result = curr.fetchall()
+
+    for elem in result:
+        posts.append(elem)
+
+    if len(posts) == 0:
+        return jsonify({"message":"No posts found with that username." , "status":404})
+    
+    # Sort posts by date (it is sufficient to reverse the order of the list)
+    posts.reverse()
+
+    return jsonify({"posts":posts, "status":200})
 
 
 ########################### INTERACTIONS MANAGEMENT APIs #################################

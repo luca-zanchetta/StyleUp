@@ -59,22 +59,22 @@ def create_account():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data['username']
+    email = data['email']
     password = data['password']
     
-    query = 'SELECT username, password FROM Person WHERE username = %s;'
-    values = (username,)
+    query = 'SELECT username, email, password FROM Person WHERE email = %s;'
+    values = (email,)
     curr.execute(query, values)
     result = curr.fetchall()
     
     for elem in result:
-        if elem[1] == password:
-            return jsonify({'message':'Login successfully performed!', 'status':200})
+        if elem[2] == password:
+            return jsonify({'message':'Login successfully performed!', 'username':elem[0], 'status':200})
         elif elem[2] != password:
             return jsonify({'message':'ERROR: Wrong username and/or password.', 'status':400})
     
-    # If we get here, the username is wrong
-    return jsonify({'message':'ERROR: Wrong username and/or password.', 'status':400})
+    # If we get here, the email is wrong
+    return jsonify({'message':'ERROR: Wrong email and/or password.', 'status':400})
 
 
 @app.route('/updateAccount', methods=['POST'])

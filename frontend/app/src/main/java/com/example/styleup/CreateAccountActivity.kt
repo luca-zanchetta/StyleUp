@@ -8,6 +8,29 @@ import android.widget.EditText
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.http.POST
+import retrofit2.http.Body
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import android.util.Log
+import java.util.regex.Pattern
+
+fun isValidEmail(email: String): Boolean {
+    val pattern = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$")
+    return pattern.matcher(email).matches()
+}
+
+data class Person(val username: String, val email: String, val password: String)
+data class CreateAccountResponse(val message: String, val status: Int)
+
+interface RegisterAPI {
+    @POST("register")
+    fun createAccount(@Body person: Person): Call<CreateAccountResponse>
+}
+
 class CreateAccountActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,25 +42,67 @@ class CreateAccountActivity : AppCompatActivity() {
         val confirmPasswordEditText: EditText = findViewById(R.id.editTextConfirmPassword)
         val signUpButton: Button = findViewById(R.id.btnConfirmSignUp)
 
+        // Call REST API logic
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:5000/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        val apiService = retrofit.create(RegisterAPI::class.java)
+
+        val backButton: ImageView = findViewById(R.id.backButton)
+        backButton.setOnClickListener {
+            finish()
+        }
+
         signUpButton.setOnClickListener {
             val name = nameEditText.text.toString()
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
             val confirmPassword = confirmPasswordEditText.text.toString()
 
-            // Qui puoi gestire la logica di registrazione utilizzando le variabili 'name', 'email', 'password', 'confirmPassword'
-
-            Log.d("CreateAccountActivity", "Sign Up Button Clicked")
-
-            val intent = Intent(this, FeedActivity::class.java)
-            startActivity(intent)
-            //finish()
-        }
-
-        val backButton: ImageView = findViewById(R.id.backButton)
-
-        backButton.setOnClickListener {
-            finish()
+            if (name != "" && email != "" && password != "" && confirmPassword != "") {
+                if (password == confirmPassword) {
+                    if (password.length >= 8) {
+                        if(isValidEmail(email)) {
+                            val person = Person(name, email, password)
+                            apiService.createAccount(person).enqueue(object : Callback<CreateAccountResponse> {
+                                override fun onResponse(call: Call<CreateAccountResponse>, response: Response<CreateAccountResponse>) {
+                                    if (response.isSuccessful) {
+                                        // Sarebbe più carino con un popup nella UI
+                                        Log.d("CreateAccount", "User registered successfully: ${response.body()}")
+                                        val intent = Intent(this, LoginActivity::class.java)
+                                        startActivity(intent)
+                                    }
+                                    else {
+                                        // Sarebbe più carino con un popup nella UI
+                                        Log.e("CreateAccount", "ERROR: ${response.body()}")
+                                    }
+                                }
+                                override fun onFailure(call: Call<CreateAccountResponse>, t: Throwable) {
+                                    // Sarebbe più carino con un popup nella UI
+                                    Log.e("CreateAccount", "Error: ${t.message}", t)
+                                }
+                            })
+                        }
+                        else {      // Email is not valid
+                            // Sarebbe più carino con un popup nella UI
+                            Log.e("CreateAccount", "ERROR: The inserted email address is not valid. Try to follow the pattern try@example.com.")
+                        }
+                    }
+                    else {      // The password is not long enough
+                        // Sarebbe più carino con un popup nella UI
+                        Log.e("CreateAccount", "ERROR: The inserted password should be at least 8 characters long.")
+                    }
+                }
+                else {      // The inserted passwords do not match
+                    // Sarebbe più carino con un popup nella UI
+                    Log.e("CreateAccount", "ERROR: The inserted passwords do not match.")
+                }
+            }
+            else {      // There is some empty field
+                // Sarebbe più carino con un popup nella UI
+                Log.e("CreateAccount", "ERROR: There is some empty field.")
+            }
         }
     }
 }

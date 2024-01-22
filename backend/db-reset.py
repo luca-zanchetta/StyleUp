@@ -35,7 +35,8 @@ person_table = '''
 CREATE TABLE IF NOT EXISTS Person (
     username VARCHAR(100) PRIMARY KEY,
     email VARCHAR(100) NOT NULL,
-    password VARCHAR(100) NOT NULL
+    password VARCHAR(100) NOT NULL,
+    UNIQUE (email)
 );
 '''
 try:

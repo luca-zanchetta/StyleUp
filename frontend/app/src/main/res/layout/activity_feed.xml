@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Barra superiore fissa con il nome dell'app -->
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarTop"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize">
+
+        <TextView
+            android:id="@+id/appTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="StyleUp"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:layout_gravity="center" />
+
+        <!-- Icona della campanella per le notifiche in alto a destra -->
+        <ImageView
+            android:id="@+id/notificationIcon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_bell"
+            android:layout_gravity="end"
+            android:layout_marginEnd="30dp"
+            android:contentDescription="Notifications" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- Contenuto della schermata, scrollabile -->
+
+
+    <!-- Barra inferiore fissa -->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottomBar"
+        android:layout_below="@+id/toolbarTop">
+        <!-- Inserisci qui le tue card rettangolari -->
+        <!-- Esempio di card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@android:color/white"
+            android:elevation="13dp"
+            android:orientation="vertical"
+            android:padding="20dp">
+            <!-- Contenuto della card -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Contenuto della card"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="4">
+
+        <!-- Aggiungi le tue icone nella barra inferiore
+                    TODO: sistemare posizione icone-->
+        <ImageView
+            android:id="@+id/icon1"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_icon1"
+            android:contentDescription="Icon 1" />
+
+        <ImageView
+            android:id="@+id/icon2"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_icon2"
+            android:layout_toEndOf="@+id/icon1"
+            android:contentDescription="Icon 2" />
+
+        <ImageView
+            android:id="@+id/icon3"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_icon3"
+            android:layout_toEndOf="@+id/icon2"
+            android:contentDescription="Icon 3" />
+
+        <ImageView
+            android:id="@+id/icon4"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_icon4"
+            android:layout_toEndOf="@+id/icon3"
+            android:contentDescription="Icon 4" />
+
+    </LinearLayout>
+</RelativeLayout>

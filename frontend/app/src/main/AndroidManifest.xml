@@ -23,6 +23,9 @@
         </activity>
         <activity android:name=".LoginActivity"/>
         <activity android:name=".CreateAccountActivity"/>
+        <activity
+            android:name=".FeedActivity"
+            android:label="FeedActivity"/>
     </application>
 
 </manifest>

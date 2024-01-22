@@ -1,8 +1,11 @@
 package com.example.styleup
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 
 class CreateAccountActivity : AppCompatActivity() {
@@ -23,6 +26,18 @@ class CreateAccountActivity : AppCompatActivity() {
             val confirmPassword = confirmPasswordEditText.text.toString()
 
             // Qui puoi gestire la logica di registrazione utilizzando le variabili 'name', 'email', 'password', 'confirmPassword'
+
+            Log.d("CreateAccountActivity", "Sign Up Button Clicked")
+
+            val intent = Intent(this, FeedActivity::class.java)
+            startActivity(intent)
+            //finish()
+        }
+
+        val backButton: ImageView = findViewById(R.id.backButton)
+
+        backButton.setOnClickListener {
+            finish()
         }
     }
 }

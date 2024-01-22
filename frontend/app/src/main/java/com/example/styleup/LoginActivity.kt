@@ -1,8 +1,11 @@
 package com.example.styleup
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 
 class LoginActivity: AppCompatActivity() {
@@ -19,6 +22,17 @@ class LoginActivity: AppCompatActivity() {
             val password = passwordEditText.text.toString()
 
             // Qui puoi gestire la logica di login utilizzando le variabili 'email' e 'password'
+
+            Log.d("LoginActivity", "Login Button Clicked")
+            val intent = Intent(this, FeedActivity::class.java)
+            startActivity(intent)
+            //finish()
+        }
+
+        val backButton: ImageView = findViewById(R.id.backButton)
+
+        backButton.setOnClickListener {
+            finish()
         }
 
     }

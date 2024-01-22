@@ -64,4 +64,22 @@
         android:layout_below="@id/createAccountTitle"
         android:layout_marginTop="256dp"
         android:text="Sign up" />
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true">
+
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/back_arrow"
+            android:layout_gravity="start"
+            android:layout_marginStart="20dp"
+            android:contentDescription="Back" />
+
+    </androidx.appcompat.widget.Toolbar>
+
 </RelativeLayout>

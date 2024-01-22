@@ -115,6 +115,36 @@ def delete_account():
 
 
 ########################## PICTURES & POSTS MANAGEMENT APIs ##############################
+@app.route('/getShirts', methods=['GET'])
+def get_shirts():
+    shirts = []
+
+    query = 'SELECT id, shirt, shirt_name FROM Shirt;'
+    curr.execute(query)
+    result = curr.fetchall()
+
+    for elem in result:
+        shirts.append(elem)
+    
+    return jsonify({'shirts':shirts, 'status':200})
+
+
+@app.route('/getShirtById', mehtods=['GET'])
+def get_shirt_by_id():
+    shirt_id = request.args.get('id')
+
+    query = 'SELECT id, shirt, shirt_name FROM Shirt WHERE id = %s;'
+    values = (shirt_id,)
+
+    curr.execute(query, values)
+    result = curr.fetchall()
+
+    for elem in result:
+        return jsonify({'shirt':elem, 'status':200})
+    
+    return jsonify({'message':'No shirt found!', 'status':404})
+
+
 @app.route('/createPost', methods=['POST'])
 def create_post():
     data = request.get_json()

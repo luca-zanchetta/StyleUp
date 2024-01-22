@@ -1,4 +1,5 @@
 import mysql.connector
+import os
 
 print('\n[INFO] Resetting data...\n')
 
@@ -173,5 +174,33 @@ try:
     print('[INFO] Table \'Likes\' successfully created.')
 except Exception as err:
     print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+err)
+
+
+# Load images into the database
+print("\n")
+image_paths = []
+image_names = []
+images = []
+i = 0
+
+for image_path in os.listdir("./images"):
+    image_names.append(image_path[:-4])
+    image_paths.append("./images/"+image_path)
+
+for image in image_paths:
+    with open(image, "rb") as image_file:
+        images.append(image_file.read())
+
+for image in images:
+    query = 'INSERT INTO Shirt (shirt, shirt_name) VALUES (%s, %s);'
+    values = (image, image_names[i])
+    try:
+        mycursor.execute(query, values)
+        mydb.commit()
+        print(f'[INFO] Shirt {image_names[i]} successfully uploaded!')
+    except Exception as err:
+        print(f'[ERROR] Something went wrong during the upload of the image {image_names[i]}: '+err)
+    i+=1
+i=0
     
 print('\n[INFO] The system is ready!\n')

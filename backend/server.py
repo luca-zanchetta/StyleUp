@@ -129,7 +129,7 @@ def get_shirts():
     return jsonify({'shirts':shirts, 'status':200})
 
 
-@app.route('/getShirtById', mehtods=['GET'])
+@app.route('/getShirtById', methods=['GET'])
 def get_shirt_by_id():
     shirt_id = request.args.get('id')
 

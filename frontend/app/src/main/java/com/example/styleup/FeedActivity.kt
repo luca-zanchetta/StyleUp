@@ -3,14 +3,8 @@ package com.example.styleup
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.NavController
-import androidx.navigation.findNavController
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import com.example.styleup.databinding.ActivityFeedBinding
 
 class FeedActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

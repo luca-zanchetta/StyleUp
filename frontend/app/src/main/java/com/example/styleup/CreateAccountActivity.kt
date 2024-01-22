@@ -15,7 +15,6 @@ import retrofit2.http.POST
 import retrofit2.http.Body
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import android.util.Log
 import java.util.regex.Pattern
 
 fun isValidEmail(email: String): Boolean {
@@ -60,6 +59,8 @@ class CreateAccountActivity : AppCompatActivity() {
             val password = passwordEditText.text.toString()
             val confirmPassword = confirmPasswordEditText.text.toString()
 
+            val intent = Intent(this, LoginActivity::class.java)
+
             if (name != "" && email != "" && password != "" && confirmPassword != "") {
                 if (password == confirmPassword) {
                     if (password.length >= 8) {
@@ -67,15 +68,26 @@ class CreateAccountActivity : AppCompatActivity() {
                             val person = Person(name, email, password)
                             apiService.createAccount(person).enqueue(object : Callback<CreateAccountResponse> {
                                 override fun onResponse(call: Call<CreateAccountResponse>, response: Response<CreateAccountResponse>) {
-                                    if (response.isSuccessful) {
-                                        // Sarebbe più carino con un popup nella UI
-                                        Log.d("CreateAccount", "User registered successfully: ${response.body()}")
-                                        val intent = Intent(this, LoginActivity::class.java)
-                                        startActivity(intent)
-                                    }
-                                    else {
-                                        // Sarebbe più carino con un popup nella UI
-                                        Log.e("CreateAccount", "ERROR: ${response.body()}")
+                                    try {
+                                        // Access the result using response.body()
+                                        val result: CreateAccountResponse? = response.body()
+
+                                        // Check if the result is not null before accessing properties
+                                        result?.let {
+                                            val status = it.status
+                                            if (status == 200) {
+                                                // Sarebbe più carino con un popup nella UI
+                                                Log.d("CreateAccount", "User registered successfully: ${response.body()}")
+                                                startActivity(intent)
+                                            }
+                                            else {
+                                                // Sarebbe più carino con un popup nella UI
+                                                Log.e("CreateAccount", "ERROR: ${response.body()}")
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        // Handle exceptions (e.g., network error, parsing error)
+                                        Log.d("Login", e.toString())
                                     }
                                 }
                                 override fun onFailure(call: Call<CreateAccountResponse>, t: Throwable) {

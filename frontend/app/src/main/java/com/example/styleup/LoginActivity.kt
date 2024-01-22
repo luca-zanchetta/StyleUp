@@ -16,7 +16,6 @@ import retrofit2.http.POST
 import retrofit2.http.Body
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import android.util.Log
 
 data class LoginRequest(val email: String, val password: String)
 data class LoginResponse(val message: String, val username: String, val status: Int)
@@ -55,41 +54,52 @@ class LoginActivity: AppCompatActivity() {
             val password = passwordEditText.text.toString()
 
             val loginRequest = LoginRequest(email, password)
+            val intent = Intent(this, FeedActivity::class.java)
 
             if (email != "" && password != "") {
                 if (isValidEmail(email)) {
                     apiService.login(loginRequest).enqueue(object : Callback<LoginResponse> {
                         override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                            if (response.isSuccessful) {
-                                // Sarebbe più carino con un popup nella UI
-                                Log.d("Login", "Login successfully performed: ${response.body()}")
+                            try {
+                                // Access the result using response.body()
+                                val result: LoginResponse? = response.body()
 
-                                // Once the login operation is successful, I need to store my username for future interactions
-                                // This username should be deleted at logout time
-                                try {
-                                    // Access the result using response.body()
-                                    val result: LoginResponse? = response.body()
+                                // Check if the result is not null before accessing properties
+                                result?.let { it ->
+                                    val status = it.status
+                                    if (status == 200) {
+                                        // Sarebbe più carino con un popup nella UI
+                                        Log.d("Login", "Login successfully performed: ${response.body()}")
 
-                                    // Check if the result is not null before accessing properties
-                                    result?.let {
-                                        val username: String = it.username
+                                        // Once the login operation is successful, I need to store my username for future interactions
+                                        // This username should be deleted at logout time
+                                        try {
+                                            // Access the result using response.body()
+                                            val result2: LoginResponse? = response.body()
 
-                                        // Store the username in the localStorage
-                                        val editor = sharedPreferences.edit()
-                                        editor.putString("username", username)
-                                        editor.apply()
+                                            // Check if the result is not null before accessing properties
+                                            result2?.let { it2 ->
+                                                val username: String = it2.username
+
+                                                // Store the username in the localStorage
+                                                val editor = sharedPreferences.edit()
+                                                editor.putString("username", username)
+                                                editor.apply()
+                                            }
+                                        } catch (e: Exception) {
+                                            // Handle exceptions (e.g., network error, parsing error)
+                                            Log.d("Login", e.toString())
+                                        }
+                                        startActivity(intent)
                                     }
-                                } catch (e: Exception) {
-                                    // Handle exceptions (e.g., network error, parsing error)
-                                    Log.d("Login", e.toString())
+                                    else {
+                                        // Sarebbe più carino con un popup nella UI
+                                        Log.e("Login", "ERROR: ${response.body()}")
+                                    }
                                 }
-
-                                val intent = Intent(this, FeedActivity::class.java)
-                                startActivity(intent)
-                            }
-                            else {
-                                // Sarebbe più carino con un popup nella UI
-                                Log.e("Login", "ERROR: ${response.body()}")
+                            } catch (e: Exception) {
+                                // Handle exceptions (e.g., network error, parsing error)
+                                Log.d("Login", e.toString())
                             }
                         }
                         override fun onFailure(call: Call<LoginResponse>, t: Throwable) {

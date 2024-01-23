@@ -16,7 +16,7 @@ try:
     mydb.commit()
     print('[INFO] Database \'styleup\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the database \'styleup\': '+err)
+    print('[ERROR] Something went wrong during the creation of the database \'styleup\': '+str(err))
 mydb.close()
 
 
@@ -46,7 +46,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Person\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Person\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Person\': '+str(err))
 
 
 # Shirt table
@@ -64,7 +64,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Shirt\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Shirt\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Shirt\': '+str(err))
 
 
 # Notification table
@@ -94,7 +94,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Notification\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Notification\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Notification\': '+str(err))
 
 
 # Friend_of table
@@ -122,7 +122,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Friend_of\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Friend_of\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Friend_of\': '+str(err))
 
 
 # Post table
@@ -148,7 +148,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Post\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Post\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Post\': '+str(err))
 
 
 # Likes table
@@ -173,7 +173,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Likes\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+str(err))
 
 
 # Load images into the database
@@ -199,7 +199,7 @@ for image in images:
         mydb.commit()
         print(f'[INFO] Shirt {image_names[i]} successfully uploaded!')
     except Exception as err:
-        print(f'[ERROR] Something went wrong during the upload of the image {image_names[i]}: '+err)
+        print(f'[ERROR] Something went wrong during the upload of the image {image_names[i]}: '+str(err))
     i+=1
 i=0
     

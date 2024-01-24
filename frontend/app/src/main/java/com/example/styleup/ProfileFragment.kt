@@ -8,11 +8,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.google.android.material.navigation.NavigationView
 
 class ProfileFragment: Fragment() {
+
+    private lateinit var profileImage: ImageView
+    private lateinit var usernameText: TextView
 
     private lateinit var settingsIcon: ImageView
     private lateinit var drawerLayout: DrawerLayout
@@ -55,6 +59,15 @@ class ProfileFragment: Fragment() {
             }
         }
 
+        // Inizializza le variabili dell'immagine del profilo e dello username
+        profileImage = view.findViewById(R.id.profileImage)
+        usernameText = view.findViewById(R.id.usernameText)
+
+        profileImage.setImageResource(R.drawable.default_profile_image)
+        usernameText.text = "Username"
+
+
+
         return view
 
     }
@@ -71,6 +84,15 @@ class ProfileFragment: Fragment() {
                 // Codice da eseguire se l'utente annulla
             })
             .show()
+    }
+
+    // Aggiungi metodi per modificare l'immagine del profilo e lo username
+    fun setProfileImage(imageResId: Int) {
+        profileImage.setImageResource(imageResId)
+    }
+
+    fun setUsername(username: String) {
+        usernameText.text = username
     }
 
 }

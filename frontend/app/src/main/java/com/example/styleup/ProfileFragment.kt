@@ -1,6 +1,7 @@
 package com.example.styleup
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -21,6 +22,7 @@ class ProfileFragment: Fragment() {
     private lateinit var settingsIcon: ImageView
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -31,6 +33,9 @@ class ProfileFragment: Fragment() {
         drawerLayout = view.findViewById(R.id.drawerLayout)
         navigationView = view.findViewById(R.id.navigationView)
 
+        val mainActivity = Intent(requireContext(), MainActivity::class.java)
+        val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+
         settingsIcon.setOnClickListener {
             // Apri il drawer quando viene cliccato l'icona delle impostazioni
             drawerLayout.openDrawer(navigationView)
@@ -40,8 +45,12 @@ class ProfileFragment: Fragment() {
         navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_logout -> {
-                    // Esegui il logout
-                    showConfirmationDialog()
+                    // Remove the username
+                    val editor = sharedPreferences.edit()
+                    editor.remove("username")
+                    editor.apply()
+
+                    startActivity(mainActivity)
                     true
                 }
                 R.id.menu_modify_profile -> {
@@ -66,10 +75,7 @@ class ProfileFragment: Fragment() {
         profileImage.setImageResource(R.drawable.default_profile_image)
         usernameText.text = "Username"
 
-
-
         return view
-
     }
 
     private fun showConfirmationDialog() {

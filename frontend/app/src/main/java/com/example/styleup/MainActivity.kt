@@ -1,5 +1,6 @@
 package com.example.styleup
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +10,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login_main)
+
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", "")
+        if (username != "") {
+            val homepage = Intent(this, FeedActivity::class.java)
+            startActivity(homepage)
+        }
 
         val loginButton: Button = findViewById(R.id.btnLogin)
         val createAccountButton: Button = findViewById(R.id.btnCreateAccount)

@@ -1,5 +1,7 @@
 package com.example.styleup
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -34,7 +36,7 @@ class ProfileFragment: Fragment() {
             when (menuItem.itemId) {
                 R.id.menu_logout -> {
                     // Esegui il logout
-                    // ...
+                    showConfirmationDialog()
                     true
                 }
                 R.id.menu_modify_profile -> {
@@ -44,7 +46,7 @@ class ProfileFragment: Fragment() {
                 }
                 R.id.menu_delete_profile -> {
                     // Elimina il profilo
-                    // ...
+                    showConfirmationDialog()
                     true
                 }
                 else -> false
@@ -55,5 +57,18 @@ class ProfileFragment: Fragment() {
 
     }
 
+    private fun showConfirmationDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Conferma")
+            .setMessage("Vuoi davvero eseguire questa azione?")
+            .setPositiveButton("Conferma", DialogInterface.OnClickListener { dialog, which ->
+                // Codice da eseguire se l'utente conferma
+                // Aggiungi qui la logica desiderata
+            })
+            .setNegativeButton("Annulla", DialogInterface.OnClickListener { dialog, which ->
+                // Codice da eseguire se l'utente annulla
+            })
+            .show()
+    }
 
 }

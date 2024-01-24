@@ -7,10 +7,10 @@
 
     <item
         android:id="@+id/menu_modify_profile"
-        android:title="Modify Profile" />
+        android:title="Modify Account" />
 
     <item
         android:id="@+id/menu_delete_profile"
-        android:title="Delete Profile" />
+        android:title="Delete Account" />
 
 </menu>

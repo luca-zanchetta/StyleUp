@@ -1,6 +1,8 @@
 package com.example.styleup
 
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -73,9 +75,6 @@ class LoginActivity: AppCompatActivity() {
                                 result?.let { it ->
                                     val status = it.status
                                     if (status == 200) {
-                                        // Sarebbe più carino con un popup nella UI
-                                        Log.d("Login", "Login successfully performed: ${response.body()}")
-
                                         // Once the login operation is successful, I need to store my username for future interactions
                                         // This username should be deleted at logout time
                                         try {
@@ -98,42 +97,56 @@ class LoginActivity: AppCompatActivity() {
                                         startActivity(intent)
                                     }
                                     else {
-                                        // Sarebbe più carino con un popup nella UI
-                                        Log.e("Login", "ERROR: ${response.body()}")
+                                        val ko = AlertDialog.Builder(this@LoginActivity)
+                                        ko.setTitle("ERROR")
+                                            .setMessage("${it.message}")
+                                            .setPositiveButton("OK", DialogInterface.OnClickListener { dialog, which ->
+                                                // Do nothing :)
+                                            })
+                                            .show()
                                     }
                                 }
                             } catch (e: Exception) {
-                                // Handle exceptions (e.g., network error, parsing error)
-                                Log.d("Login", e.toString())
+                                val ko = AlertDialog.Builder(this@LoginActivity)
+                                ko.setTitle("ERROR")
+                                    .setMessage("${e.toString()}")
+                                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                        // Do nothing :)
+                                    })
+                                    .show()
                             }
                         }
                         override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                            // Sarebbe più carino con un popup nella UI
-                            Log.e("Login", "Error: ${t.message}", t)
+                            val ko = AlertDialog.Builder(this@LoginActivity)
+                            ko.setTitle("ERROR")
+                                .setMessage("${t.message}")
+                                .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                    // Do nothing :)
+                                })
+                                .show()
                         }
                     })
                 }
                 else {
-                    // Sarebbe più carino con un popup nella UI
-                    Log.e("Login", "ERROR: The inserted email address is not valid. Try to follow the pattern try@example.com.")
+                    val ko = AlertDialog.Builder(this)
+                    ko.setTitle("ERROR")
+                        .setMessage("The inserted email address is not valid. Try to follow the pattern try@example.com.")
+                        .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                            // Do nothing :)
+                        })
+                        .show()
                 }
             }
             else {
-                // Sarebbe più carino con un popup nella UI
-                Log.e("Login", "ERROR: There is some empty field.")
+                val ko = AlertDialog.Builder(this)
+                ko.setTitle("ERROR")
+                    .setMessage("There is some empty field.")
+                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                        // Do nothing :)
+                    })
+                    .show()
             }
         }
 
     }
 }
-
-/*
-Logout:
-// Get SharedPreferences instance
-val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-
-// Remove the username
-val editor = sharedPreferences.edit()
-editor.remove("username")
-editor.apply()
- */

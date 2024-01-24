@@ -1,6 +1,8 @@
 package com.example.styleup
 
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -84,44 +86,83 @@ class CreateAccountActivity : AppCompatActivity() {
                                         result?.let {
                                             val status = it.status
                                             if (status == 200) {
-                                                // Sarebbe più carino con un popup nella UI
-                                                Log.d("CreateAccount", "User registered successfully: ${response.body()}")
-                                                startActivity(intent)
+                                                val ok = AlertDialog.Builder(this@CreateAccountActivity)
+                                                ok.setTitle("Message")
+                                                    .setMessage("${it.message}")
+                                                    .setPositiveButton("OK", DialogInterface.OnClickListener { dialog, which ->
+                                                        startActivity(intent)
+                                                    })
+                                                    .show()
                                             }
                                             else {
-                                                // Sarebbe più carino con un popup nella UI
-                                                Log.e("CreateAccount", "ERROR: ${response.body()}")
+                                                val ko = AlertDialog.Builder(this@CreateAccountActivity)
+                                                ko.setTitle("ERROR")
+                                                    .setMessage("${it.message}")
+                                                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                                        // Do nothing :)
+                                                    })
+                                                    .show()
                                             }
                                         }
                                     } catch (e: Exception) {
-                                        // Handle exceptions (e.g., network error, parsing error)
-                                        Log.d("Login", e.toString())
+                                        val ko = AlertDialog.Builder(this@CreateAccountActivity)
+                                        ko.setTitle("ERROR")
+                                            .setMessage("${e.toString()}")
+                                            .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                                // Do nothing :)
+                                            })
+                                            .show()
                                     }
                                 }
                                 override fun onFailure(call: Call<CreateAccountResponse>, t: Throwable) {
-                                    // Sarebbe più carino con un popup nella UI
-                                    Log.e("CreateAccount", "Error: ${t.message}", t)
+                                    val ko = AlertDialog.Builder(this@CreateAccountActivity)
+                                    ko.setTitle("ERROR")
+                                        .setMessage("${t.message}")
+                                        .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                            // Do nothing :)
+                                        })
+                                        .show()
                                 }
                             })
                         }
                         else {      // Email is not valid
-                            // Sarebbe più carino con un popup nella UI
-                            Log.e("CreateAccount", "ERROR: The inserted email address is not valid. Try to follow the pattern try@example.com.")
+                            val ko = AlertDialog.Builder(this)
+                            ko.setTitle("ERROR")
+                                .setMessage("The inserted email address is not valid. Try to follow the pattern try@example.com.")
+                                .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                    // Do nothing :)
+                                })
+                                .show()
                         }
                     }
                     else {      // The password is not long enough
-                        // Sarebbe più carino con un popup nella UI
-                        Log.e("CreateAccount", "ERROR: The inserted password should be at least 8 characters long.")
+                        val ko = AlertDialog.Builder(this)
+                        ko.setTitle("ERROR")
+                            .setMessage("The inserted password should be at least 8 characters long.")
+                            .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                // Do nothing :)
+                            })
+                            .show()
                     }
                 }
                 else {      // The inserted passwords do not match
-                    // Sarebbe più carino con un popup nella UI
-                    Log.e("CreateAccount", "ERROR: The inserted passwords do not match.")
+                    val ko = AlertDialog.Builder(this)
+                    ko.setTitle("ERROR")
+                        .setMessage("The inserted password do not match.")
+                        .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                            // Do nothing :)
+                        })
+                        .show()
                 }
             }
             else {      // There is some empty field
-                // Sarebbe più carino con un popup nella UI
-                Log.e("CreateAccount", "ERROR: There is some empty field.")
+                val ko = AlertDialog.Builder(this)
+                ko.setTitle("ERROR")
+                    .setMessage("There is some empty field.")
+                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                        // Do nothing :)
+                    })
+                    .show()
             }
         }
     }

@@ -134,14 +134,24 @@ class ProfileFragment: Fragment() {
                                     .show()
                             }
                             else {
-                                // Sarebbe più carino con un popup nella UI
-                                Log.e("DeleteAccount", "${it.message}")
+                                val ko = AlertDialog.Builder(requireContext())
+                                ko.setTitle("ERROR")
+                                    .setMessage("${it.message}")
+                                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                        // Do nothing :)
+                                    })
+                                    .show()
                             }
                         }
                     }
                     override fun onFailure(call: Call<DeleteAccountResponse>, t: Throwable) {
-                        // Sarebbe più carino con un popup nella UI
-                        Log.e("DeleteAccount", "Error: ${t.message}", t)
+                        val ko = AlertDialog.Builder(requireContext())
+                        ko.setTitle("ERROR")
+                            .setMessage("${t.message}")
+                            .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                // Do nothing :)
+                            })
+                            .show()
                     }
                 })
             })

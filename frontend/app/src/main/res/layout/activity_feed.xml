@@ -33,31 +33,15 @@
     <!-- Contenuto della schermata, scrollabile -->
 
 
-    <!-- Barra inferiore fissa -->
-
-    <ScrollView
+    <!-- FrameLayout come container per i Fragment -->
+    <FrameLayout
+        android:id="@+id/mainFragmentContainers"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottomBar"
-        android:layout_below="@+id/toolbarTop">
-        <!-- Inserisci qui le tue card rettangolari -->
-        <!-- Esempio di card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:background="@android:color/white"
-            android:elevation="13dp"
-            android:orientation="vertical"
-            android:padding="20dp">
-            <!-- Contenuto della card -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Contenuto della card"/>
+        android:layout_below="@id/toolbarTop"
+        android:layout_above="@+id/bottomBar"/>
 
-        </LinearLayout>
-    </ScrollView>
+    <!-- Barra inferiore fissa -->
 
     <LinearLayout
         android:id="@+id/bottomBar"

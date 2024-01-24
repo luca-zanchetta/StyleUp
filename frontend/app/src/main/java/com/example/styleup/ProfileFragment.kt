@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.os.Message
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +15,26 @@ import android.widget.TextView
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.google.android.material.navigation.NavigationView
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
+import retrofit2.http.POST
+
+data class DeleteAccountRequest(val username: String?)
+data class DeleteAccountResponse(val message: String, val status: Int)
+interface DeleteAccountAPI {
+    @POST("deleteAccount")
+    fun deleteAccount(@Body request: DeleteAccountRequest): Call<DeleteAccountResponse>
+}
+
+val retrofit = Retrofit.Builder()
+    .baseUrl("http://10.0.2.2:5000/")
+    .addConverterFactory(GsonConverterFactory.create())
+    .build()
+val apiService = retrofit.create(DeleteAccountAPI::class.java)
 
 class ProfileFragment: Fragment() {
 
@@ -80,14 +102,51 @@ class ProfileFragment: Fragment() {
 
     private fun showConfirmationDialog() {
         val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("Conferma")
-            .setMessage("Vuoi davvero eseguire questa azione?")
-            .setPositiveButton("Conferma", DialogInterface.OnClickListener { dialog, which ->
-                // Codice da eseguire se l'utente conferma
-                // Aggiungi qui la logica desiderata
+        builder.setTitle("Delete account")
+            .setMessage("Do you really want to delete your account?")
+            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, which ->
+                val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val username = sharedPreferences.getString("username", "")
+
+                val request = DeleteAccountRequest(username)
+                apiService.deleteAccount(request).enqueue(object : Callback<DeleteAccountResponse> {
+                    override fun onResponse(call: Call<DeleteAccountResponse>, response: Response<DeleteAccountResponse>) {
+                        val result: DeleteAccountResponse? = response.body()
+
+                        // Check if the result is not null before accessing properties
+                        result?.let { it ->
+                            val status = it.status
+                            if (status == 200) {
+                                // Delete operation was successful
+                                val ok = AlertDialog.Builder(requireContext())
+                                ok.setTitle("Message")
+                                    .setMessage("${it.message}")
+                                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                        // Do logout and come back to homepage
+                                        val mainActivity = Intent(requireContext(), MainActivity::class.java)
+
+                                        val editor = sharedPreferences.edit()
+                                        editor.remove("username")
+                                        editor.apply()
+
+                                        startActivity(mainActivity)
+                                    })
+                                    .show()
+                            }
+                            else {
+                                // Sarebbe più carino con un popup nella UI
+                                Log.e("DeleteAccount", "${it.message}")
+                            }
+                        }
+                    }
+                    override fun onFailure(call: Call<DeleteAccountResponse>, t: Throwable) {
+                        // Sarebbe più carino con un popup nella UI
+                        Log.e("DeleteAccount", "Error: ${t.message}", t)
+                    }
+                })
             })
-            .setNegativeButton("Annulla", DialogInterface.OnClickListener { dialog, which ->
-                // Codice da eseguire se l'utente annulla
+            .setNegativeButton("No", DialogInterface.OnClickListener { dialog, which ->
+                // Do nothing :)
             })
             .show()
     }

@@ -94,7 +94,7 @@ def update_account():
         print('[ERROR] There was an error while modifying the account: '+str(err))
         return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
         
-    return jsonify({"message":"Your data was modified successfully!", "status":200})
+    return jsonify({"message":"Your data has been modified successfully!", "status":200})
 
 
 @app.route('/deleteAccount', methods=['POST'])
@@ -111,7 +111,7 @@ def delete_account():
         print('[ERROR] There was an error while deleting the account: '+str(err))
         return jsonify({'message':'ERROR: Delete operation was not successfully performed.', 'status':500})
     
-    return jsonify({'message':'Your account was successfully deleted!', 'status':200})
+    return jsonify({'message':'Your account has been successfully deleted!', 'status':200})
 
 
 ########################## PICTURES & POSTS MANAGEMENT APIs ##############################

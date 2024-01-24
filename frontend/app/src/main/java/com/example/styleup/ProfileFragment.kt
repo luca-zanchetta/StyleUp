@@ -2,6 +2,7 @@ package com.example.styleup
 
 import android.app.AlertDialog
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -41,7 +42,8 @@ class ProfileFragment: Fragment() {
                 }
                 R.id.menu_modify_profile -> {
                     // Modifica il profilo
-                    // ...
+                    val intent = Intent(requireContext(),ModAccActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 R.id.menu_delete_profile -> {

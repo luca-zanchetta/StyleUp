@@ -34,14 +34,33 @@
                         android:layout_marginEnd="17dp" />
                 </androidx.appcompat.widget.Toolbar>
 
+                <ImageView
+                    android:id="@+id/profileImage"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/default_profile_image"
+                    android:contentDescription="Profile Image"/>
+
+                <!-- Aggiungi il testo con il nome account centrato -->
                 <TextView
+                    android:id="@+id/usernameText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="I'm in the profile zone"
-                    android:textSize="18sp"
-                    android:textColor="@android:color/black" />
+                    android:text="Username"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"/>
 
-                <!-- Aggiungi altri elementi al LinearLayout se necessario -->
+                <!-- Aggiungi il bottone "Friends" centrato -->
+                <Button
+                    android:id="@+id/friendsButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Friends"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"/>
 
             </LinearLayout>
         </ScrollView>

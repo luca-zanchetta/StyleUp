@@ -30,6 +30,13 @@
         <activity
             android:name=".FeedActivity"
             android:label="FeedActivity"/>
+        <activity
+            android:name=".ModAccActivity"
+            android:parentActivityName=".ProfileFragment" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ProfileFragment" />
+        </activity>
     </application>
 
 </manifest>

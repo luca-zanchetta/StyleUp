@@ -7,7 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.os.Message
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -123,7 +123,8 @@ class ProfileFragment: Fragment() {
                             val profileImageByteArray = it.profileImage
                             Log.d("ProfileFragment", "ok4")
                             if (profileImageByteArray != null) {
-                                setProfileImage(profileImageByteArray)
+                                val originalBytes = Base64.decode(profileImageByteArray, Base64.DEFAULT)
+                                setProfileImage(originalBytes)
                                 Log.d("ProfileFragment", "ok5")
                             }
                         }

@@ -1,4 +1,5 @@
 import mysql.connector
+import base64
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime
@@ -86,15 +87,8 @@ def update_account():
     password = data['password']
     profile_image = None
     try:
-        
         profile_image = data['profile_image']
-        
-        # # Normalize values to fit within [0, 255]
-        # normalized_values = [(value - min(profile_image)) * 255 / (max(profile_image) - min(profile_image)) for value in profile_image]
-
-        # # Convert list to byte array
-        # profile_image = bytes(map(int, normalized_values))
-        print(f"[INFO] profile_image type: {type(profile_image)}")
+        profile_image = bytearray([(value + 256) % 256 for value in profile_image])
     except Exception as err:
         print(f"[ERROR] {str(err)}")
     
@@ -172,7 +166,8 @@ def get_profile_picture():
     result = curr.fetchall()
     
     for elem in result:
-        return jsonify({'profile_image':elem, 'status':200})
+        encoded_data = base64.b64encode(elem[0]).decode('utf-8')
+        return jsonify({'profile_image':encoded_data, 'status':200})
     
     return jsonify({'profile_image':None, 'status':404})    
 

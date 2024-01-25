@@ -4,6 +4,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Message
 import android.util.Log
@@ -21,13 +23,20 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 data class DeleteAccountRequest(val username: String?)
 data class DeleteAccountResponse(val message: String, val status: Int)
+data class GetProfileImageResponse(val profileImage: ByteArray?, val status: Int)
 interface DeleteAccountAPI {
     @POST("deleteAccount")
     fun deleteAccount(@Body request: DeleteAccountRequest): Call<DeleteAccountResponse>
+}
+interface GetProfileImageAPI {
+    @GET("getProfileImage")
+    fun getProfileImage(@Query("username") username: String?): Call<GetProfileImageResponse>
 }
 
 val retrofit = Retrofit.Builder()
@@ -35,6 +44,7 @@ val retrofit = Retrofit.Builder()
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 val apiService = retrofit.create(DeleteAccountAPI::class.java)
+val apiService2 = retrofit.create(GetProfileImageAPI::class.java)
 
 class ProfileFragment: Fragment() {
 
@@ -57,6 +67,7 @@ class ProfileFragment: Fragment() {
 
         val mainActivity = Intent(requireContext(), MainActivity::class.java)
         val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", "")
 
         settingsIcon.setOnClickListener {
             // Apri il drawer quando viene cliccato l'icona delle impostazioni
@@ -95,7 +106,38 @@ class ProfileFragment: Fragment() {
         usernameText = view.findViewById(R.id.usernameText)
 
         profileImage.setImageResource(R.drawable.default_profile_image)
-        usernameText.text = "Username"
+        usernameText.text = username
+
+        apiService2.getProfileImage(username).enqueue(object : Callback<GetProfileImageResponse> {
+            override fun onResponse(call: Call<GetProfileImageResponse>, response: Response<GetProfileImageResponse>) {
+                try {
+                    Log.d("ProfileFragment", "ok1")
+                    // Access the result using response.body()
+                    val result: GetProfileImageResponse? = response.body()
+                    Log.d("ProfileFragment", "ok2")
+                    // Check if the result is not null before accessing properties
+                    result?.let {
+                        Log.d("ProfileFragment", "ok3")
+                        val status = it.status
+                        if (status == 200) {
+                            val profileImageByteArray = it.profileImage
+                            Log.d("ProfileFragment", "ok4")
+                            if (profileImageByteArray != null) {
+                                setProfileImage(profileImageByteArray)
+                                Log.d("ProfileFragment", "ok5")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Do nothing
+                    Log.e("ProfileFragment", e.toString())
+                }
+            }
+            override fun onFailure(call: Call<GetProfileImageResponse>, t: Throwable) {
+                // Do nothing
+                Log.e("ProfileFragment", "${t.message}")
+            }
+        })
 
         return view
     }
@@ -161,9 +203,9 @@ class ProfileFragment: Fragment() {
             .show()
     }
 
-    // Aggiungi metodi per modificare l'immagine del profilo e lo username
-    fun setProfileImage(imageResId: Int) {
-        profileImage.setImageResource(imageResId)
+    fun setProfileImage(imageByteArray: ByteArray) {
+        val bitmap: Bitmap? = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+        profileImage.setImageBitmap(bitmap)
     }
 
     fun setUsername(username: String) {

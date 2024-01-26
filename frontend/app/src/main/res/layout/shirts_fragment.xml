@@ -9,43 +9,26 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <!-- android:layout_above="@+id/bottomBar"
-        android:layout_below="@+id/toolbarTop" -->
-        <!-- Inserisci qui le tue card rettangolari -->
-        <!-- Esempio di card -->
-        <!--
-        <LinearLayout
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:background="@android:color/white"
-            android:elevation="13dp"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Contenuto della card"/>
+            <!-- Altri elementi del layout... -->
 
-        </LinearLayout> -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="8dp"
+                android:clipToPadding="false" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+        </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="I'm in the shirts zone"
-                android:textSize="18sp"
-                android:textColor="@android:color/black" />
+
 
             <!-- Aggiungi altri elementi al LinearLayout se necessario -->
 
-        </LinearLayout>
-    </ScrollView>
-
-</RelativeLayout>
+        </ScrollView>
+    </RelativeLayout>

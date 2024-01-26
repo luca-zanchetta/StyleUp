@@ -37,7 +37,11 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+
 }
+
+
 
 dependencies {
 
@@ -54,4 +58,8 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("androidx.activity:activity-ktx:1.4.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.6")
+    implementation("androidx.camera:camera-camera2:1.1.0")
+
 }

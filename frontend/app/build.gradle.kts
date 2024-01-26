@@ -40,7 +40,6 @@ android {
 }
 
 dependencies {
-
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.8.0")
@@ -52,4 +51,9 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.google.mlkit:pose-detection:18.0.0-beta3")
+    implementation("androidx.camera:camera-core:1.0.0")
+    implementation("androidx.camera:camera-camera2:1.0.0")
+    implementation("androidx.camera:camera-lifecycle:1.0.0")
+    implementation("androidx.camera:camera-view:1.0.0-alpha27")
 }

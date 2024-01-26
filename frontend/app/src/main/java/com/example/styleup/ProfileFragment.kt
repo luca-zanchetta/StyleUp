@@ -29,7 +29,7 @@ import retrofit2.http.Query
 
 data class DeleteAccountRequest(val username: String?)
 data class DeleteAccountResponse(val message: String, val status: Int)
-data class GetProfileImageResponse(val profileImage: ByteArray?, val status: Int)
+data class GetProfileImageResponse(val profile_image: String?, val status: Int)
 interface DeleteAccountAPI {
     @POST("deleteAccount")
     fun deleteAccount(@Body request: DeleteAccountRequest): Call<DeleteAccountResponse>
@@ -40,7 +40,7 @@ interface GetProfileImageAPI {
 }
 
 val retrofit = Retrofit.Builder()
-    .baseUrl("http://10.0.2.2:5000/")
+    .baseUrl(backendURL)
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 val apiService = retrofit.create(DeleteAccountAPI::class.java)
@@ -111,22 +111,24 @@ class ProfileFragment: Fragment() {
         apiService2.getProfileImage(username).enqueue(object : Callback<GetProfileImageResponse> {
             override fun onResponse(call: Call<GetProfileImageResponse>, response: Response<GetProfileImageResponse>) {
                 try {
-                    Log.d("ProfileFragment", "ok1")
                     // Access the result using response.body()
                     val result: GetProfileImageResponse? = response.body()
-                    Log.d("ProfileFragment", "ok2")
+
                     // Check if the result is not null before accessing properties
                     result?.let {
-                        Log.d("ProfileFragment", "ok3")
                         val status = it.status
                         if (status == 200) {
-                            val profileImageByteArray = it.profileImage
-                            Log.d("ProfileFragment", "ok4")
+                            val profileImageByteArray = it.profile_image
                             if (profileImageByteArray != null) {
                                 val originalBytes = Base64.decode(profileImageByteArray, Base64.DEFAULT)
                                 setProfileImage(originalBytes)
-                                Log.d("ProfileFragment", "ok5")
                             }
+                            else {
+                                // Do nothing
+                            }
+                        }
+                        else {
+                            // Do nothing
                         }
                     }
                 } catch (e: Exception) {
@@ -136,7 +138,6 @@ class ProfileFragment: Fragment() {
             }
             override fun onFailure(call: Call<GetProfileImageResponse>, t: Throwable) {
                 // Do nothing
-                Log.e("ProfileFragment", "${t.message}")
             }
         })
 
@@ -212,5 +213,4 @@ class ProfileFragment: Fragment() {
     fun setUsername(username: String) {
         usernameText.text = username
     }
-
 }

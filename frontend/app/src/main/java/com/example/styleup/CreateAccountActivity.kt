@@ -53,7 +53,7 @@ class CreateAccountActivity : AppCompatActivity() {
 
         // Call REST API logic
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5000/")
+            .baseUrl(backendURL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val apiService = retrofit.create(RegisterAPI::class.java)

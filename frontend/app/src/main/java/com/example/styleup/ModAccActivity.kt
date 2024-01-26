@@ -5,9 +5,13 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Base64
+import android.util.Log
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
@@ -84,10 +88,50 @@ class ModAccActivity : AppCompatActivity(){
 
         // Call REST API logic
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5000/")
+            .baseUrl(backendURL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val apiService = retrofit.create(UpdateAccountAPI::class.java)
+        val apiService2 = retrofit.create(GetProfileImageAPI::class.java)
+
+        apiService2.getProfileImage(username).enqueue(object : Callback<GetProfileImageResponse> {
+            override fun onResponse(call: Call<GetProfileImageResponse>, response: Response<GetProfileImageResponse>) {
+
+                fun setProfileImage(imageByteArray: ByteArray) {
+                    val bitmap: Bitmap? = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                    newProfilePictureImageView.setImageBitmap(bitmap)
+                }
+
+                try {
+                    // Access the result using response.body()
+                    val result: GetProfileImageResponse? = response.body()
+
+                    // Check if the result is not null before accessing properties
+                    result?.let {
+                        val status = it.status
+                        if (status == 200) {
+                            val profileImageByteArray = it.profile_image
+                            if (profileImageByteArray != null) {
+                                val originalBytes = Base64.decode(profileImageByteArray, Base64.DEFAULT)
+                                setProfileImage(originalBytes)
+                            }
+                            else {
+                                // Do nothing
+                            }
+                        }
+                        else {
+                            // Do nothing
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Do nothing
+                    Log.e("ProfileFragment", e.toString())
+                }
+            }
+            override fun onFailure(call: Call<GetProfileImageResponse>, t: Throwable) {
+                // Do nothing
+            }
+        })
 
         val confirmChangesButton: Button = findViewById(R.id.confirmChangesButton)
         confirmChangesButton.setOnClickListener {
@@ -137,6 +181,7 @@ class ModAccActivity : AppCompatActivity(){
             }
 
             if (canUpdate) {
+                Log.d("ModifyAccountActivity", imageByteArray.toString())
                 val person = Person2(newUsername, newEmail, newPassword, imageByteArray, username)
                 apiService.updateAccount(person).enqueue(object : Callback<UpdateAccountResponse> {
                     override fun onResponse(call: Call<UpdateAccountResponse>, response: Response<UpdateAccountResponse>) {

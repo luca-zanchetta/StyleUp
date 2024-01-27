@@ -4,8 +4,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
-
+    <uses-feature android:name="android.hardware.camera.any" />
 
     <application
         android:allowBackup="true"
@@ -40,6 +41,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ProfileFragment" />
         </activity>
+        <activity
+            android:name=".PoseDetectionActivity"
+            android:label="PoseDetectionActivity" />
     </application>
 
 </manifest>

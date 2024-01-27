@@ -1,4 +1,5 @@
 import mysql.connector
+import os
 
 print('\n[INFO] Resetting data...\n')
 
@@ -15,7 +16,7 @@ try:
     mydb.commit()
     print('[INFO] Database \'styleup\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the database \'styleup\': '+err)
+    print('[ERROR] Something went wrong during the creation of the database \'styleup\': '+str(err))
 mydb.close()
 
 
@@ -36,6 +37,7 @@ CREATE TABLE IF NOT EXISTS Person (
     username VARCHAR(100) PRIMARY KEY,
     email VARCHAR(100) NOT NULL,
     password VARCHAR(100) NOT NULL,
+    profile_image LONGBLOB,
     UNIQUE (email)
 );
 '''
@@ -45,7 +47,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Person\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Person\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Person\': '+str(err))
 
 
 # Shirt table
@@ -63,7 +65,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Shirt\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Shirt\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Shirt\': '+str(err))
 
 
 # Notification table
@@ -93,7 +95,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Notification\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Notification\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Notification\': '+str(err))
 
 
 # Friend_of table
@@ -121,7 +123,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Friend_of\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Friend_of\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Friend_of\': '+str(err))
 
 
 # Post table
@@ -147,7 +149,7 @@ try:
     mydb.commit()
     print('[INFO] Table \'Post\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Post\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Post\': '+str(err))
 
 
 # Likes table
@@ -172,6 +174,34 @@ try:
     mydb.commit()
     print('[INFO] Table \'Likes\' successfully created.')
 except Exception as err:
-    print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+err)
+    print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+str(err))
+
+
+# Load images into the database
+print("\n")
+image_paths = []
+image_names = []
+images = []
+i = 0
+
+for image_path in os.listdir("./images"):
+    image_names.append(image_path[:-4])
+    image_paths.append("./images/"+image_path)
+
+for image in image_paths:
+    with open(image, "rb") as image_file:
+        images.append(image_file.read())
+
+for image in images:
+    query = 'INSERT INTO Shirt (shirt, shirt_name) VALUES (%s, %s);'
+    values = (image, image_names[i])
+    try:
+        mycursor.execute(query, values)
+        mydb.commit()
+        print(f'[INFO] Shirt {image_names[i]} successfully uploaded!')
+    except Exception as err:
+        print(f'[ERROR] Something went wrong during the upload of the image {image_names[i]}: '+str(err))
+    i+=1
+i=0
     
 print('\n[INFO] The system is ready!\n')

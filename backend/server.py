@@ -1,4 +1,5 @@
 import mysql.connector
+import base64
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime
@@ -84,17 +85,57 @@ def update_account():
     username = data['username']
     email = data['email']
     password = data['password']
-    
-    query = 'UPDATE Person SET username = %s, email = %s, password = %s WHERE username = %s;'
-    values = (username, email, password, old_username)
+    profile_image = None
     try:
-        curr.execute(query, values)
-        mydb.commit()
+        profile_image = data['profile_image']
+        profile_image = bytearray([(value + 256) % 256 for value in profile_image])
     except Exception as err:
-        print('[ERROR] There was an error while modifying the account: '+str(err))
-        return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
+        print(f"[ERROR] {str(err)}")
+    
+    if old_username is not None:
+        if email != "":
+            query = 'UPDATE Person SET email = %s WHERE username = %s;'
+            values = (email, old_username)
+            try:
+                curr.execute(query, values)
+                mydb.commit()
+            except Exception as err:
+                print('[ERROR] There was an error while modifying the account: '+str(err))
+                return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
+            
+        if password != "":
+            query = 'UPDATE Person SET password = %s WHERE username = %s;'
+            values = (password, old_username)
+            try:
+                curr.execute(query, values)
+                mydb.commit()
+            except Exception as err:
+                print('[ERROR] There was an error while modifying the account: '+str(err))
+                return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
+            
+        if profile_image is not None:
+            query = 'UPDATE Person SET profile_image = %s WHERE username = %s;'
+            values = (profile_image, old_username)
+            try:
+                curr.execute(query, values)
+                mydb.commit()
+            except Exception as err:
+                print('[ERROR] There was an error while modifying the account: '+str(err))
+                return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
+            
+        if username != "":
+            query = 'UPDATE Person SET username = %s WHERE username = %s;'
+            values = (username, old_username)
+            try:
+                curr.execute(query, values)
+                mydb.commit()
+            except Exception as err:
+                print('[ERROR] There was an error while modifying the account: '+str(err))
+                return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
         
-    return jsonify({"message":"Your data was modified successfully!", "status":200})
+        return jsonify({"message":"Your data has been modified successfully!", "status":200})
+    
+    return jsonify({'message':'ERROR: Modify operation was not successfully performed.', 'status':500})
 
 
 @app.route('/deleteAccount', methods=['POST'])
@@ -111,10 +152,57 @@ def delete_account():
         print('[ERROR] There was an error while deleting the account: '+str(err))
         return jsonify({'message':'ERROR: Delete operation was not successfully performed.', 'status':500})
     
-    return jsonify({'message':'Your account was successfully deleted!', 'status':200})
+    return jsonify({'message':'Your account has been successfully deleted!', 'status':200})
+
+
+@app.route('/getProfileImage', methods=['GET'])
+def get_profile_picture():
+    username = request.args.get('username')
+    
+    query = 'SELECT profile_image FROM Person WHERE username = %s;'
+    values = (username,)
+    
+    curr.execute(query, values)
+    result = curr.fetchall()
+    
+    for elem in result:
+        encoded_data = base64.b64encode(elem[0]).decode('utf-8')
+        return jsonify({'profile_image':encoded_data, 'status':200})
+    
+    return jsonify({'profile_image':None, 'status':404})    
 
 
 ########################## PICTURES & POSTS MANAGEMENT APIs ##############################
+@app.route('/getShirts', methods=['GET'])
+def get_shirts():
+    shirts = []
+
+    query = 'SELECT id, shirt, shirt_name FROM Shirt;'
+    curr.execute(query)
+    result = curr.fetchall()
+
+    for elem in result:
+        shirts.append(elem)
+    
+    return jsonify({'shirts':shirts, 'status':200})
+
+
+@app.route('/getShirtById', methods=['GET'])
+def get_shirt_by_id():
+    shirt_id = request.args.get('id')
+
+    query = 'SELECT id, shirt, shirt_name FROM Shirt WHERE id = %s;'
+    values = (shirt_id,)
+
+    curr.execute(query, values)
+    result = curr.fetchall()
+
+    for elem in result:
+        return jsonify({'shirt':elem, 'status':200})
+    
+    return jsonify({'message':'No shirt found!', 'status':404})
+
+
 @app.route('/createPost', methods=['POST'])
 def create_post():
     data = request.get_json()

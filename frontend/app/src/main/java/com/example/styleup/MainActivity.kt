@@ -32,12 +32,5 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, CreateAccountActivity::class.java)
             startActivity(intent)
         }
-
-        // DELETE
-        val provaPoseEstimationButton: Button = findViewById(R.id.btnProvaPose)
-        provaPoseEstimationButton.setOnClickListener {
-            val intent = Intent(this, PoseDetectionActivity::class.java)
-            startActivity(intent)
-        }
     }
 }

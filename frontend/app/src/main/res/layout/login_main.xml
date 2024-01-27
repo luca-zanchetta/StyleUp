@@ -38,12 +38,4 @@
         android:layout_marginTop="43dp"
         android:text="Create Account" />
 
-    <Button
-        android:id="@+id/btnProvaPose"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnCreateAccount"
-        android:layout_marginTop="43dp"
-        android:text="Prova Pose Estimation" />
-
 </RelativeLayout>

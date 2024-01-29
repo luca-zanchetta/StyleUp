@@ -174,6 +174,12 @@ def get_profile_picture():
 
 
 ########################## PICTURES & POSTS MANAGEMENT APIs ##############################
+class ShirtsBackend:
+    def __init__(self, id: int, shirt: str, shirt_name: str):
+        self.id = id
+        self.shirt = shirt
+        self.shirt_name = shirt_name
+
 @app.route('/getShirts', methods=['GET'])
 def get_shirts():
     shirts = []
@@ -183,7 +189,8 @@ def get_shirts():
     result = curr.fetchall()
 
     for elem in result:
-        shirts.append(elem)
+        shirt = ShirtsBackend(elem[0], base64.b64encode(elem[1]).decode('utf-8'), elem[2])
+        shirts.append(shirt)
     
     return jsonify({'shirts':shirts, 'status':200})
 

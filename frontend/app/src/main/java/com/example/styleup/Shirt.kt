@@ -1,3 +1,5 @@
 package com.example.styleup
 
-data class Shirt(val imageResId: Int, val name: String)
+import android.graphics.Bitmap
+
+data class Shirt(val id: Int, var shirt: Bitmap?, val shirt_name: String)

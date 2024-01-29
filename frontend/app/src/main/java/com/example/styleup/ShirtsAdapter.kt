@@ -18,8 +18,8 @@ class ShirtsAdapter(private val shirtsList: List<Shirt>, private val onItemClick
 
     override fun onBindViewHolder(holder: ShirtViewHolder, position: Int) {
         val shirt = shirtsList[position]
-        holder.shirtImage.setImageResource(shirt.imageResId)
-        holder.shirtName.text = shirt.name
+        holder.shirtImage.setImageBitmap(shirt.shirt)
+        holder.shirtName.text = shirt.shirt_name
 
         holder.itemView.setOnClickListener {
             onItemClickListener.onItemClick(shirt)

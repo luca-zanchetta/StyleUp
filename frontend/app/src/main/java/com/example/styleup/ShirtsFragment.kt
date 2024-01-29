@@ -7,11 +7,13 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.view.LayoutInflater
+import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -19,11 +21,19 @@ import androidx.recyclerview.widget.RecyclerView
 import java.io.File
 import java.util.Date
 import java.util.Locale
+import android.Manifest
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 
 class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var shirtsAdapter: ShirtsAdapter
+    private val CAMERA_PERMISSION_REQUEST = 1001
 
     private val takePictureLauncher = //contratto di attività
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success: Boolean ->
@@ -104,10 +114,37 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
 
     override fun onItemClick(shirt: Shirt) {
         // Gestisci il clic sulla card qui, ad esempio, apri la fotocamera
-        openCamera()
+
+        val cameraPermission = Manifest.permission.CAMERA
+        if (ContextCompat.checkSelfPermission(requireContext(), cameraPermission) == PackageManager.PERMISSION_GRANTED) {
+            openCamera()
+        } else {
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST)
+        }
     }
 
     private fun openCamera() {
+        val textureView: PreviewView = requireView().findViewById(R.id.previewView)
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+
+        cameraProviderFuture.addListener({
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            val preview = Preview.Builder()
+                .build()
+                .also { it.setSurfaceProvider(textureView.surfaceProvider) }
+
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(this, cameraSelector, preview)
+            } catch (e: Exception) {
+                Log.e("openCamera()", "Use case binding failed", e)
+            }
+        }, ContextCompat.getMainExecutor(requireContext()))
+
+        /*
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
@@ -120,7 +157,7 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
                 // Se il permesso non è ancora stato concesso, richiedilo
                 requestCameraPermission.launch(android.Manifest.permission.CAMERA)
             }
-        }
+        }*/
 
 
     }

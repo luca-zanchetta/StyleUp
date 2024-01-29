@@ -121,8 +121,6 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
                 requestCameraPermission.launch(android.Manifest.permission.CAMERA)
             }
         }
-
-
     }
 
 }

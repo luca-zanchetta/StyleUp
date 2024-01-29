@@ -88,7 +88,7 @@ class ProfileFragment: Fragment() {
                 }
                 R.id.menu_modify_profile -> {
                     // Modifica il profilo
-                    val intent = Intent(requireContext(),ModAccActivity::class.java)
+                    val intent = Intent(requireContext(), ModAccActivity::class.java)
                     startActivity(intent)
                     true
                 }
@@ -120,15 +120,10 @@ class ProfileFragment: Fragment() {
                         if (status == 200) {
                             val profileImageByteArray = it.profile_image
                             if (profileImageByteArray != null) {
-                                val originalBytes = Base64.decode(profileImageByteArray, Base64.DEFAULT)
+                                val originalBytes =
+                                    Base64.decode(profileImageByteArray, Base64.DEFAULT)
                                 setProfileImage(originalBytes)
                             }
-                            else {
-                                // Do nothing
-                            }
-                        }
-                        else {
-                            // Do nothing
                         }
                     }
                 } catch (e: Exception) {
@@ -205,12 +200,12 @@ class ProfileFragment: Fragment() {
             .show()
     }
 
-    fun setProfileImage(imageByteArray: ByteArray) {
-        val bitmap: Bitmap? = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+    fun setProfileImage(imageByteArray: ByteArray?) {
+        val bitmap: Bitmap? = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray!!.size)
         profileImage.setImageBitmap(bitmap)
     }
 
-    fun setUsername(username: String) {
+    fun setUsername(username: String?) {
         usernameText.text = username
     }
 }

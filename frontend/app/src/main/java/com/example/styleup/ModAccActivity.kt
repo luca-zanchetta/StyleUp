@@ -15,11 +15,15 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -50,6 +54,13 @@ class ModAccActivity : AppCompatActivity(){
         val newEmailEditText: EditText = findViewById(R.id.newEmailEditText)
         val newPasswordEditText: EditText = findViewById(R.id.newPasswordEditText)
         val repeatPasswordEditText: EditText = findViewById(R.id.repeatPasswordEditText)
+
+        var fragmentManager: FragmentManager = supportFragmentManager
+        fun setMainFragment(fragment: Fragment) {
+            val transaction: FragmentTransaction = fragmentManager.beginTransaction()
+            transaction.replace(R.id.mainFragmentContainers, fragment)
+            transaction.commit()
+        }
 
         val backButton: ImageView = findViewById(R.id.backButton)
         backButton.setOnClickListener{
@@ -199,7 +210,7 @@ class ModAccActivity : AppCompatActivity(){
                                         editor.remove("username")
                                         editor.apply()
 
-                                        editor.putString("username", username)
+                                        editor.putString("username", newUsername)
                                         editor.apply()
                                     }
 
@@ -207,7 +218,12 @@ class ModAccActivity : AppCompatActivity(){
                                     ok.setTitle("Message")
                                         .setMessage("${it.message}")
                                         .setPositiveButton("OK", DialogInterface.OnClickListener { dialog, which ->
-                                            onBackPressed()
+                                            val editor = sharedPreferences.edit()
+                                            editor.putString("window", "profile")
+                                            editor.apply()
+
+                                            val intent = Intent(this@ModAccActivity, FeedActivity::class.java)
+                                            startActivity(intent)
                                         })
                                         .show()
                                 }

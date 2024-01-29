@@ -72,7 +72,7 @@ def login():
         if elem[2] == password:
             return jsonify({'message':'Login successfully performed!', 'username':elem[0], 'status':200})
         elif elem[2] != password:
-            return jsonify({'message':'ERROR: Wrong username and/or password.', 'status':400})
+            return jsonify({'message':'ERROR: Wrong username and/or password.', 'username':None, 'status':400})
     
     # If we get here, the email is wrong
     return jsonify({'message':'ERROR: Wrong email and/or password.', 'status':400})
@@ -90,6 +90,7 @@ def update_account():
         profile_image = data['profile_image']
         profile_image = bytearray([(value + 256) % 256 for value in profile_image])
     except Exception as err:
+        profile_image = None
         print(f"[ERROR] {str(err)}")
     
     if old_username is not None:
@@ -158,12 +159,16 @@ def delete_account():
 @app.route('/getProfileImage', methods=['GET'])
 def get_profile_picture():
     username = request.args.get('username')
+
+    print(f"[getProfileImage] username = {username}")
     
     query = 'SELECT profile_image FROM Person WHERE username = %s;'
     values = (username,)
     
     curr.execute(query, values)
     result = curr.fetchall()
+
+    print(f"[getProfileImage] result = {result}")
     
     for elem in result:
         encoded_data = base64.b64encode(elem[0]).decode('utf-8')

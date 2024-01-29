@@ -1,8 +1,11 @@
 package com.example.styleup
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Base64
+import android.util.Log
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.widget.Toolbar
@@ -10,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class FeedActivity: AppCompatActivity() {
 
@@ -26,6 +32,8 @@ class FeedActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_feed)
 
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val fragmentSharedPreferences = sharedPreferences.getString("window", "")
 
         val notificationIcon: ImageView = findViewById(R.id.notificationIcon)
         notificationIcon.setOnClickListener {
@@ -37,6 +45,57 @@ class FeedActivity: AppCompatActivity() {
 
         val shirtsFragment = ShirtsFragment()
         setMainFragment(shirtsFragment)
+
+        if (fragmentSharedPreferences == "profile") {
+            val editor = sharedPreferences.edit()
+            editor.remove("window")
+            editor.apply()
+
+            val profileFragment = ProfileFragment()
+            val username = sharedPreferences.getString("username", "")
+
+            // Call for updating the UI
+            apiService2.getProfileImage(username).enqueue(object :
+                Callback<GetProfileImageResponse> {
+                override fun onResponse(call: Call<GetProfileImageResponse>, response: Response<GetProfileImageResponse>) {
+                    try {
+                        // Access the result using response.body()
+                        val result: GetProfileImageResponse? = response.body()
+
+                        // Check if the result is not null before accessing properties
+                        result?.let {
+                            val status = it.status
+                            if (status == 200) {
+                                Log.d("FeedActivity", "RESPONSE OK")
+                                val profileImageByteArray = it.profile_image
+                                if (profileImageByteArray != null) {
+                                    val originalBytes =
+                                        Base64.decode(profileImageByteArray, Base64.DEFAULT)
+                                    profileFragment.setProfileImage(originalBytes)
+                                    profileFragment.setUsername(username)
+                                    Log.d("FeedActivity", "UI updated.")
+                                }
+                                else {
+                                    Log.e("FeedActivity", "profileImageByteArray is null!")
+                                }
+                            }
+                            else {
+                                Log.e("FeedActivity", "${status}")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Do nothing
+                        Log.e("FeedActivity", e.toString())
+                    }
+                }
+                override fun onFailure(call: Call<GetProfileImageResponse>, t: Throwable) {
+                    // Do nothing
+                    Log.e("FeedActivity", "${t.message}")
+                }
+            })
+
+            setMainFragment(profileFragment)
+        }
 
         icon1 = findViewById(R.id.icon1)
         icon2 = findViewById(R.id.icon2)

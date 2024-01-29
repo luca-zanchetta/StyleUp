@@ -159,16 +159,12 @@ def delete_account():
 @app.route('/getProfileImage', methods=['GET'])
 def get_profile_picture():
     username = request.args.get('username')
-
-    print(f"[getProfileImage] username = {username}")
     
     query = 'SELECT profile_image FROM Person WHERE username = %s;'
     values = (username,)
     
     curr.execute(query, values)
     result = curr.fetchall()
-
-    print(f"[getProfileImage] result = {result}")
     
     for elem in result:
         encoded_data = base64.b64encode(elem[0]).decode('utf-8')

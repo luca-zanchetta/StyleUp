@@ -44,6 +44,9 @@
         <activity
             android:name=".PoseDetectionActivity"
             android:label="PoseDetectionActivity" />
+        <activity
+            android:name=".CameraFragment"
+            android:label="CameraFragment" />
     </application>
 
 </manifest>

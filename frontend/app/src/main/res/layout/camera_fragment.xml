@@ -35,6 +35,13 @@
 
     </androidx.appcompat.widget.Toolbar>
 
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="500dp"
+        android:layout_height="500dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="100dp" />
+
     <Button
         android:id="@+id/captureButton"
         android:layout_width="72dp"

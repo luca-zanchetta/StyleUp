@@ -33,7 +33,6 @@ import java.util.Date
 import java.util.Locale
 import com.google.gson.annotations.SerializedName
 import android.Manifest
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -148,28 +147,6 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
                 Log.e("ShirtsFragment", "[ERR] ${t.message}")
             }
         })
-        /*
-        val shirtsList = listOf(
-            Shirt(R.drawable.shirt_n1, "Maglietta 1"),
-            Shirt(R.drawable.shirt_n2, "Maglietta 2"),
-            Shirt(R.drawable.shirt_n3, "Maglietta 3")
-        )*/
-        /*
-        var finalShirtsList: MutableList<Shirt> = mutableListOf()
-        for (shirt in shirtsList) {
-            val id = shirt.id
-            val shirt_bytes = Base64.decode(shirt.shirt, Base64.DEFAULT)
-            val shirt_bitmap: Bitmap? = BitmapFactory.decodeByteArray(shirt_bytes, 0, shirt_bytes!!.size)
-            val shirt_name = shirt.shirtName
-
-            val new_shirt = Shirt(id, shirt_bitmap, shirt_name)
-            finalShirtsList.add(new_shirt)
-        }
-
-        // Inizializza e imposta l'adattatore
-        shirtsAdapter = ShirtsAdapter(finalShirtsList, this)
-        recyclerView.adapter = shirtsAdapter
-        */
 
         return view
     }
@@ -190,20 +167,20 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
         shirtsAdapter = ShirtsAdapter(finalShirtsList, object : ShirtsAdapter.OnItemClickListener {
             override fun onItemClick(shirt: Shirt) {
                 // Handle item click if needed
+
+                val intent = Intent(requireContext(), CameraFragment::class.java)
+                startActivity(intent)
+
+                /*
+                val cameraPermission = Manifest.permission.CAMERA
+                if (ContextCompat.checkSelfPermission(requireContext(), cameraPermission) == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    ActivityCompat.requestPermissions(requireActivity(), arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST)
+                }*/
             }
         })
         recyclerView.adapter = shirtsAdapter
-    }
-
-    override fun onItemClick(shirt: Shirt) {
-        // Gestisci il clic sulla card qui, ad esempio, apri la fotocamera
-
-        val cameraPermission = Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(requireContext(), cameraPermission) == PackageManager.PERMISSION_GRANTED) {
-            openCamera()
-        } else {
-            ActivityCompat.requestPermissions(requireActivity(), arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST)
-        }
     }
 
     private fun openCamera() {
@@ -226,23 +203,10 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
                 Log.e("openCamera()", "Use case binding failed", e)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
+    }
 
-        /*
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                // Se il permesso è già garantito, avvia la fotocamera
-                takePicture()
-            }
-            else -> {
-                // Se il permesso non è ancora stato concesso, richiedilo
-                requestCameraPermission.launch(android.Manifest.permission.CAMERA)
-            }
-        }*/
-
-
+    override fun onItemClick(shirt: Shirt) {
+        // Necessary for avoiding errors; handled in a different part of the code
     }
 
 }

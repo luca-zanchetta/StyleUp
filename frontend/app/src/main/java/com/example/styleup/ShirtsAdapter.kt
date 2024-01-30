@@ -39,5 +39,4 @@ class ShirtsAdapter(private val shirtsList: List<Shirt>, private val onItemClick
     interface OnItemClickListener {
         fun onItemClick(shirt: Shirt)
     }
-
 }

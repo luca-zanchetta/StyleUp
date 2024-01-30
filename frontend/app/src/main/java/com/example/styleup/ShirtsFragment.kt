@@ -29,7 +29,9 @@ import retrofit2.http.GET
 import java.io.File
 import java.util.Date
 import java.util.Locale
-data class ShirtBackend(val id: Int, val shirt: String, val shirt_name: String)
+import com.google.gson.annotations.SerializedName
+
+data class ShirtBackend(val id: Int, val shirt: String, val shirtName: String)
 data class GetShirtsResponse(val shirts: List<ShirtBackend>, val status: Int)
 interface GetShirtsAPI {
     @GET("getShirts")
@@ -110,8 +112,8 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
         var shirtsList: MutableList<ShirtBackend> = mutableListOf()
         apiGetShirts.getShirts().enqueue(object : Callback<GetShirtsResponse> {
             override fun onResponse(call: Call<GetShirtsResponse>, response: Response<GetShirtsResponse>) {
+                Log.d("ShirtsFragment", "JSON Response: ${response.body()}")
                 try {
-                    Log.d("ShirtsFragment", "JSON Response: ${response.body()}")
                     // Access the result using response.body()
                     val result: GetShirtsResponse? = response.body()
 
@@ -119,10 +121,9 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
                     result?.let {
                         val status = it.status
                         if (status == 200) {
-                            for (shirt in it.shirts) {
-                                shirtsList.add(shirt)
-                                Log.d("ShirtsFragment", "Shirt ${shirt.shirt_name} added")
-                            }
+                            shirtsList.addAll(it.shirts)
+                            Log.d("ShirtsFragment", "Shirts added")
+                            setupAdapter(shirtsList)
                         }
                         else {
                             Log.e("ShirtsFragment", "${it.status}")
@@ -130,11 +131,11 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
                     }
                 } catch (e: Exception) {
                     // Do nothing
-                    Log.e("ShirtsFragment", e.toString())
+                    Log.e("ShirtsFragment", "[ERROR] "+e.toString())
                 }
             }
             override fun onFailure(call: Call<GetShirtsResponse>, t: Throwable) {
-                Log.e("ShirtsFragment", "${t.message}")
+                Log.e("ShirtsFragment", "[ERR] ${t.message}")
             }
         })
         /*
@@ -143,13 +144,13 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
             Shirt(R.drawable.shirt_n2, "Maglietta 2"),
             Shirt(R.drawable.shirt_n3, "Maglietta 3")
         )*/
-
+        /*
         var finalShirtsList: MutableList<Shirt> = mutableListOf()
         for (shirt in shirtsList) {
             val id = shirt.id
             val shirt_bytes = Base64.decode(shirt.shirt, Base64.DEFAULT)
             val shirt_bitmap: Bitmap? = BitmapFactory.decodeByteArray(shirt_bytes, 0, shirt_bytes!!.size)
-            val shirt_name = shirt.shirt_name
+            val shirt_name = shirt.shirtName
 
             val new_shirt = Shirt(id, shirt_bitmap, shirt_name)
             finalShirtsList.add(new_shirt)
@@ -158,8 +159,30 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
         // Inizializza e imposta l'adattatore
         shirtsAdapter = ShirtsAdapter(finalShirtsList, this)
         recyclerView.adapter = shirtsAdapter
+        */
 
         return view
+    }
+    private fun setupAdapter(shirtsList: List<ShirtBackend>) {
+        val finalShirtsList: MutableList<Shirt> = mutableListOf()
+
+        for (shirt in shirtsList) {
+            val id = shirt.id
+            val shirt_bytes = Base64.decode(shirt.shirt, Base64.DEFAULT)
+            val shirt_bitmap: Bitmap? = BitmapFactory.decodeByteArray(shirt_bytes, 0, shirt_bytes!!.size)
+            val shirt_name = shirt.shirtName
+
+            val new_shirt = Shirt(id, shirt_bitmap, shirt_name)
+            finalShirtsList.add(new_shirt)
+        }
+
+        // Initialize and set the adapter
+        shirtsAdapter = ShirtsAdapter(finalShirtsList, object : ShirtsAdapter.OnItemClickListener {
+            override fun onItemClick(shirt: Shirt) {
+                // Handle item click if needed
+            }
+        })
+        recyclerView.adapter = shirtsAdapter
     }
 
     override fun onItemClick(shirt: Shirt) {

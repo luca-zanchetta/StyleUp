@@ -3,7 +3,8 @@ import base64
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime
-from utilities import get_timestamp
+from utilities import get_timestamp, serialize_shirts
+from classes import ShirtsBackend
 
 app = Flask(__name__)
 CORS(app)
@@ -174,12 +175,6 @@ def get_profile_picture():
 
 
 ########################## PICTURES & POSTS MANAGEMENT APIs ##############################
-class ShirtsBackend:
-    def __init__(self, id: int, shirt: str, shirt_name: str):
-        self.id = id
-        self.shirt = shirt
-        self.shirt_name = shirt_name
-
 @app.route('/getShirts', methods=['GET'])
 def get_shirts():
     shirts = []
@@ -189,8 +184,12 @@ def get_shirts():
     result = curr.fetchall()
 
     for elem in result:
-        shirt = ShirtsBackend(elem[0], base64.b64encode(elem[1]).decode('utf-8'), elem[2])
+        shirt = {'id':elem[0], 'shirt':base64.b64encode(elem[1]).decode('utf-8'), 'shirtName':elem[2]}
         shirts.append(shirt)
+    
+    # shirts.append(ShirtsBackend(1, ))
+        
+    # serialized_shirts = serialize_shirts(shirts)
     
     return jsonify({'shirts':shirts, 'status':200})
 

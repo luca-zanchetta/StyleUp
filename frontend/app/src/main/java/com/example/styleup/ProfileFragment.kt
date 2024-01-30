@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.google.android.material.navigation.NavigationView
+import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,6 +27,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
+import java.util.concurrent.TimeUnit
 
 data class DeleteAccountRequest(val username: String?)
 data class DeleteAccountResponse(val message: String, val status: Int)
@@ -38,9 +40,15 @@ interface GetProfileImageAPI {
     @GET("getProfileImage")
     fun getProfileImage(@Query("username") username: String?): Call<GetProfileImageResponse>
 }
+val okHttpClient = OkHttpClient.Builder()
+    .connectTimeout(60, TimeUnit.SECONDS)
+    .readTimeout(60, TimeUnit.SECONDS)
+    .writeTimeout(60, TimeUnit.SECONDS)
+    .build()
 
 val retrofit = Retrofit.Builder()
     .baseUrl(backendURL)
+    .client(okHttpClient)
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 val apiService = retrofit.create(DeleteAccountAPI::class.java)

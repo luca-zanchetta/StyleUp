@@ -187,10 +187,6 @@ def get_shirts():
         shirt = {'id':elem[0], 'shirt':base64.b64encode(elem[1]).decode('utf-8'), 'shirtName':elem[2]}
         shirts.append(shirt)
     
-    # shirts.append(ShirtsBackend(1, ))
-        
-    # serialized_shirts = serialize_shirts(shirts)
-    
     return jsonify({'shirts':shirts, 'status':200})
 
 

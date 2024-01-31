@@ -166,43 +166,11 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
         // Initialize and set the adapter
         shirtsAdapter = ShirtsAdapter(finalShirtsList, object : ShirtsAdapter.OnItemClickListener {
             override fun onItemClick(shirt: Shirt) {
-                // Handle item click if needed
-
                 val intent = Intent(requireContext(), CameraFragment::class.java)
                 startActivity(intent)
-
-                /*
-                val cameraPermission = Manifest.permission.CAMERA
-                if (ContextCompat.checkSelfPermission(requireContext(), cameraPermission) == PackageManager.PERMISSION_GRANTED) {
-                    openCamera()
-                } else {
-                    ActivityCompat.requestPermissions(requireActivity(), arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST)
-                }*/
             }
         })
         recyclerView.adapter = shirtsAdapter
-    }
-
-    private fun openCamera() {
-        val textureView: PreviewView = requireView().findViewById(R.id.previewView)
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
-
-        cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder()
-                .build()
-                .also { it.setSurfaceProvider(textureView.surfaceProvider) }
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview)
-            } catch (e: Exception) {
-                Log.e("openCamera()", "Use case binding failed", e)
-            }
-        }, ContextCompat.getMainExecutor(requireContext()))
     }
 
     override fun onItemClick(shirt: Shirt) {

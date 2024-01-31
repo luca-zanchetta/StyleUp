@@ -1,5 +1,7 @@
 package com.example.styleup
 
+import android.content.Intent
+import android.os.Bundle
 import android.view.TextureView
 import android.widget.Button
 import android.widget.ImageButton
@@ -9,14 +11,21 @@ import androidx.fragment.app.Fragment
 
 class CameraFragment : AppCompatActivity() {
 
-    private lateinit var textureView: TextureView
-    private lateinit var captureButton: Button
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.camera_fragment)
 
-    val backButton: ImageView = findViewById(R.id.backButton)
+        val backButton = findViewById<ImageView>(R.id.backButton)
+        backButton.setOnClickListener {
+            onBackPressed()
+        }
 
-    //backButton.setOnClickListener{
-        //onBackPressed()
-    //}
+        val captureButton = findViewById<Button>(R.id.captureButton)
+        captureButton.setOnClickListener{
+            val intent = Intent(this, ConfirmPhotoActivity::class.java)
+            startActivity(intent)
+        }
+    }
 
 
 }

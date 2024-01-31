@@ -11,9 +11,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
 
 class ProfileFragment: Fragment() {
+
+    private lateinit var noPostsMessage: TextView
 
     private lateinit var profileImage: ImageView
     private lateinit var usernameText: TextView
@@ -21,6 +25,9 @@ class ProfileFragment: Fragment() {
     private lateinit var settingsIcon: ImageView
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
+
+    private lateinit var postRecyclerView: RecyclerView
+    private lateinit var postAdapter: PostAdapter
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -30,6 +37,7 @@ class ProfileFragment: Fragment() {
         settingsIcon = view.findViewById(R.id.settingsIcon)
         drawerLayout = view.findViewById(R.id.drawerLayout)
         navigationView = view.findViewById(R.id.navigationView)
+        noPostsMessage = view.findViewById(R.id.noPostsMessage)
 
         settingsIcon.setOnClickListener {
             // Apri il drawer quando viene cliccato l'icona delle impostazioni
@@ -66,10 +74,39 @@ class ProfileFragment: Fragment() {
         profileImage.setImageResource(R.drawable.default_profile_image)
         usernameText.text = "Username"
 
+        //post
+        // Inizializza la RecyclerView e l'adapter
+        postRecyclerView = view.findViewById(R.id.postRecyclerView)
+        postAdapter = PostAdapter(getSamplePosts()) // Sostituisci con i dati reali dei post
+        postRecyclerView.adapter = postAdapter
+
+        // Imposta il layout manager per la RecyclerView (ad esempio, LinearLayoutManager)
+        postRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Aggiorna la visibilità del messaggio in base all'elenco dei post
+        updatePostList(getSamplePosts())
+
 
 
         return view
 
+    }
+
+    private fun updatePostList(samplePosts: List<Post>) {
+        // Controlla se l'elenco dei post è vuoto e imposta la visibilità di conseguenza
+        if (samplePosts.isEmpty()) {
+            noPostsMessage.visibility = View.VISIBLE
+        } else {
+            noPostsMessage.visibility = View.GONE
+        }
+    }
+
+    private fun getSamplePosts(): List<Post> {
+        // Sostituisci con la logica reale per ottenere i dati dei post
+        // Restituisci una lista di oggetti Post con i dati desiderati
+        // Ad esempio:
+        // return listOf(Post(imageResourceId = R.drawable.sample_image1), ...)
+        return emptyList()
     }
 
     private fun showConfirmationDialog() {

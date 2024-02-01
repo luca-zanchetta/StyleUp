@@ -10,6 +10,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.RecyclerView
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 data class Post(
     val id: Int,  // ID dell'immagine del post (R.drawable.example_image)
@@ -17,7 +19,11 @@ data class Post(
     val imageData: Bitmap,
     val liked: Boolean
 )
-
+data class DeletePostRequest()
+interface DeletePostAPI {
+    @POST("deletePost")
+    fun deletePost(@Body request: DeletePostRequest): Call<DeletePostResponse>
+}
 class PostAdapter(private val postList: List<Post>):
     RecyclerView.Adapter<PostAdapter.PostViewHolder>()  {
     class PostViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -46,20 +52,18 @@ class PostAdapter(private val postList: List<Post>):
 
         // Aggiungi un listener per il click sul pulsante di eliminazione del post
         holder.deletePostButton.setOnClickListener {
-            showDeleteConfirmationDialog(holder.itemView.context)
-        }
-    }
+            AlertDialog.Builder(holder.itemView.context)
+                .setTitle("DELETE POST")
+                .setMessage("Do you really want to delete this post?")
+                .setPositiveButton("YES") { _, _ ->
+                    // Codice da eseguire se l'utente conferma l'eliminazione
+                    // (ad esempio, rimuovere il post dalla lista)
+                    val postID = currentPost.id
 
-    private fun showDeleteConfirmationDialog(context: Context) {
-        AlertDialog.Builder(context)
-            .setTitle("Conferma eliminazione")
-            .setMessage("Sei sicuro di voler eliminare questo post?")
-            .setPositiveButton("Conferma") { _, _ ->
-                // Codice da eseguire se l'utente conferma l'eliminazione
-                // (ad esempio, rimuovere il post dalla lista)
-            }
-            .setNegativeButton("Annulla", null)
-            .show()
+                }
+                .setNegativeButton("NO", null)
+                .show()
+        }
     }
 
     override fun getItemCount(): Int {

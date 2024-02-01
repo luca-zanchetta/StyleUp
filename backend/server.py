@@ -238,7 +238,7 @@ def create_post():
 @app.route('/deletePost', methods=['POST'])
 def delete_post():
     data = request.get_json()
-    post_id = data['post']
+    post_id = data['id']
     
     query = 'DELETE FROM Post WHERE id = %s;'
     values = (post_id,)

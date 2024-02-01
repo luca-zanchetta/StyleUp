@@ -19,15 +19,17 @@ import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import android.Manifest
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.pose.PoseDetection
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import android.net.Uri
+import androidx.core.net.toUri
 
 class CameraFragment : AppCompatActivity() {
 
@@ -48,8 +50,6 @@ class CameraFragment : AppCompatActivity() {
         backButton.setOnClickListener {
             onBackPressed()
         }
-        
-        val intent = Intent(this, ConfirmPhotoActivity::class.java)
 
         captureButton = findViewById(R.id.captureButton)
 
@@ -70,6 +70,7 @@ class CameraFragment : AppCompatActivity() {
     private fun openCamera() {
         val textureView: PreviewView = findViewById(R.id.previewView)
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
@@ -106,6 +107,12 @@ class CameraFragment : AppCompatActivity() {
 
                             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                                 Log.d("Capture Image", "Image captured successfully: ${output.savedUri}")
+                                val editor = sharedPreferences.edit()
+                                editor.putString("savedUri", output.savedUri.toString())
+                                editor.apply()
+
+                                val intent = Intent(this@CameraFragment, ConfirmPhotoActivity::class.java)
+                                startActivity(intent)
                             }
                         }
                     )

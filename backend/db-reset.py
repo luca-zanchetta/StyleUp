@@ -132,14 +132,10 @@ post_table = '''
 CREATE TABLE IF NOT EXISTS Post (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
-    shirt INT NOT NULL,
     image_data LONGBLOB NOT NULL,
     timestamp DATETIME NOT NULL,
     FOREIGN KEY (username) 
         REFERENCES Person (username)
-        ON DELETE CASCADE,
-    FOREIGN KEY (shirt) 
-        REFERENCES Shirt (id)
         ON DELETE CASCADE
 );
 '''

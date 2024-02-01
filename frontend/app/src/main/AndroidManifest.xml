@@ -47,6 +47,9 @@
         <activity
             android:name=".CameraFragment"
             android:label="CameraFragment" />
+        <activity
+            android:name=".ConfirmPhotoActivity"
+            android:label="ConfirmPhotoActivity" />
     </application>
 
 </manifest>

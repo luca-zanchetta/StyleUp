@@ -210,14 +210,20 @@ def get_shirt_by_id():
 def create_post():
     data = request.get_json()
     username = data['username']
-    shirt_id = data['shirt']
-    image_data = data['image']
+    image_data = None
+    try:
+        image_data = data['imageData']
+        image_data = bytearray([(value + 256) % 256 for value in image_data])
+    except Exception as err:
+        image_data = None
+        print(f"[ERROR] {str(err)}")
+        return jsonify({'message':'ERROR: Create post operation was not successfully performed.', 'status':500})
     
     timestamp = datetime.now()
     timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S')
     
-    query = 'INSERT INTO Post (username, shirt, image_data, timestamp) VALUES (%s, %s, %s, %s);'
-    values = (username, shirt_id, image_data, timestamp)
+    query = 'INSERT INTO Post (username, image_data, timestamp) VALUES (%s, %s, %s);'
+    values = (username, image_data, timestamp)
     
     try:
         curr.execute(query, values)

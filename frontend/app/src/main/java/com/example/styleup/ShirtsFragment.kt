@@ -145,6 +145,7 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
             }
             override fun onFailure(call: Call<GetShirtsResponse>, t: Throwable) {
                 Log.e("ShirtsFragment", "[ERR] ${t.message}")
+                // retry here
             }
         })
 

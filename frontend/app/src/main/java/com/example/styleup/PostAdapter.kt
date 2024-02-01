@@ -10,6 +10,12 @@ import android.widget.TextView
 import android.widget.Toolbar
 import androidx.recyclerview.widget.RecyclerView
 
+data class Post(
+    val imageResourceId: Int,  // ID dell'immagine del post (R.drawable.example_image)
+    val username: String,       // Nome utente dell'autore del post
+    val liked: Boolean
+)
+
 class PostAdapter(private val postList: List<Post>):
     RecyclerView.Adapter<PostAdapter.PostViewHolder>()  {
     class PostViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -58,9 +64,3 @@ class PostAdapter(private val postList: List<Post>):
         return postList.size
     }
 }
-
-data class Post(
-    val imageResourceId: Int,  // ID dell'immagine del post (R.drawable.example_image)
-    val username: String,       // Nome utente dell'autore del post
-    val liked: Boolean
-)

@@ -464,15 +464,17 @@ def get_posts_by_username():
 
     curr.execute(query, values)
     result = curr.fetchall()
+    # result = result.reverse()
 
     for elem in result:
-        posts.append(elem)
+        if elem[1] is None:
+            print("ERROR")
+        else:
+            post = {'id':elem[0], 'imageData':base64.b64encode(bytearray(elem[1])).decode('utf-8'), 'username':username}
+            posts.append(post)
 
     if len(posts) == 0:
-        return jsonify({"message":"No posts found with that username." , "status":404})
-    
-    # Sort posts by date (it is sufficient to reverse the order of the list)
-    posts.reverse()
+        return jsonify({"posts":[], "status":404})
 
     return jsonify({"posts":posts, "status":200})
 

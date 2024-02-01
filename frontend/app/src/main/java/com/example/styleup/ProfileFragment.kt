@@ -25,6 +25,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -34,6 +35,8 @@ import java.util.concurrent.TimeUnit
 data class DeleteAccountRequest(val username: String?)
 data class DeleteAccountResponse(val message: String, val status: Int)
 data class GetProfileImageResponse(val profile_image: String?, val status: Int)
+data class PostBackend2(val id: Int, val imageData: String, val username: String)
+data class GetPostsResponse(val posts: List<PostBackend2>, val status: Int)
 interface DeleteAccountAPI {
     @POST("deleteAccount")
     fun deleteAccount(@Body request: DeleteAccountRequest): Call<DeleteAccountResponse>
@@ -41,6 +44,10 @@ interface DeleteAccountAPI {
 interface GetProfileImageAPI {
     @GET("getProfileImage")
     fun getProfileImage(@Query("username") username: String?): Call<GetProfileImageResponse>
+}
+interface GetPostsByUsernameAPI {
+    @GET("getPostsByUsername")
+    fun getPostsByUsername(@Query("username") username: String?):Call<GetPostsResponse>
 }
 val okHttpClient = OkHttpClient.Builder()
     .connectTimeout(60, TimeUnit.SECONDS)
@@ -55,6 +62,7 @@ val retrofit = Retrofit.Builder()
     .build()
 val apiService = retrofit.create(DeleteAccountAPI::class.java)
 val apiService2 = retrofit.create(GetProfileImageAPI::class.java)
+val getPostsByUsernameApiService = retrofit.create(GetPostsByUsernameAPI::class.java)
 
 class ProfileFragment: Fragment() {
 
@@ -154,14 +162,16 @@ class ProfileFragment: Fragment() {
         //post
         // Inizializza la RecyclerView e l'adapter
         postRecyclerView = view.findViewById(R.id.postRecyclerView)
-        postAdapter = PostAdapter(getSamplePosts()) // Sostituisci con i dati reali dei post
-        postRecyclerView.adapter = postAdapter
+        getSamplePosts { posts ->
+            postAdapter = PostAdapter(posts)
+            postRecyclerView.adapter = postAdapter
 
-        // Imposta il layout manager per la RecyclerView (ad esempio, LinearLayoutManager)
-        postRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+            // Imposta il layout manager per la RecyclerView (ad esempio, LinearLayoutManager)
+            postRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Aggiorna la visibilità del messaggio in base all'elenco dei post
-        updatePostList(getSamplePosts())
+            // Aggiorna la visibilità del messaggio in base all'elenco dei post
+            updatePostList(posts)
+        }
 
         return view
     }
@@ -169,18 +179,52 @@ class ProfileFragment: Fragment() {
     private fun updatePostList(samplePosts: List<Post>) {
         // Controlla se l'elenco dei post è vuoto e imposta la visibilità di conseguenza
         if (samplePosts.isEmpty()) {
+            Log.d("ProfileFragment", "EMPTY")
             noPostsMessage.visibility = View.VISIBLE
         } else {
+            Log.d("ProfileFragment", "NOT EMPTY")
             noPostsMessage.visibility = View.GONE
         }
     }
 
-    private fun getSamplePosts(): List<Post> {
-        // Sostituisci con la logica reale per ottenere i dati dei post
-        // Restituisci una lista di oggetti Post con i dati desiderati
-        // Ad esempio:
-        // return listOf(Post(imageResourceId = R.drawable.sample_image1), ...)
-        return emptyList()
+    private fun getSamplePosts(callback: (MutableList<Post>) -> Unit) {
+        val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", "")
+
+        var posts: MutableList<Post> = mutableListOf()
+
+        getPostsByUsernameApiService.getPostsByUsername(username).enqueue(object : Callback<GetPostsResponse> {
+            override fun onResponse(call: Call<GetPostsResponse>, response: Response<GetPostsResponse>) {
+                val result: GetPostsResponse? = response.body()
+
+                // Check if the result is not null before accessing properties
+                result?.let { it ->
+                    val status = it.status
+                    if (status == 200) {
+                        for(post in it.posts) {
+                            val id = post.id
+                            val username = post.username
+                            val encodedImage = post.imageData
+                            val liked = false
+
+                            val originalBytes = Base64.decode(encodedImage, Base64.DEFAULT)
+                            val bitmap = BitmapFactory.decodeByteArray(originalBytes, 0, originalBytes!!.size)
+
+                            val newPost = Post(id, username, bitmap, liked)
+                            posts.add(newPost)
+                        }
+                    }
+                    else {
+                        Log.e("ProfileFragment", "No posts")
+                    }
+                }
+                callback(posts)
+            }
+            override fun onFailure(call: Call<GetPostsResponse>, t: Throwable) {
+                Log.e("ProfileFragment", "${t.message}")
+            }
+
+        })
     }
 
     private fun showConfirmationDialog() {

@@ -22,9 +22,10 @@
     <!-- Post image -->
     <ImageView
         android:id="@+id/postImage"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="centerCrop"/>
+        android:layout_width="200dp"
+        android:layout_height="300dp"
+        android:layout_marginLeft="50dp"
+        android:scaleType="centerCrop" />
 
     <!-- Barra con nome utente e icona per il like -->
     <LinearLayout

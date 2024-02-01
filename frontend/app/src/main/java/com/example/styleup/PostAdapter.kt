@@ -2,17 +2,19 @@ package com.example.styleup
 
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toolbar
+import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.RecyclerView
 
 data class Post(
-    val imageResourceId: Int,  // ID dell'immagine del post (R.drawable.example_image)
+    val id: Int,  // ID dell'immagine del post (R.drawable.example_image)
     val username: String,       // Nome utente dell'autore del post
+    val imageData: Bitmap,
     val liked: Boolean
 )
 
@@ -37,7 +39,7 @@ class PostAdapter(private val postList: List<Post>):
         val currentPost = postList[position]
 
         // Imposta l'immagine del post (aggiungi la logica necessaria per caricare l'immagine)
-        holder.postImage.setImageResource(currentPost.imageResourceId)
+        holder.postImage.setImageBitmap(currentPost.imageData)
 
         // Imposta il nome utente
         holder.usernameText.text = currentPost.username

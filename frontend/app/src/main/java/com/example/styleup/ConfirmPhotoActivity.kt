@@ -1,5 +1,6 @@
 package com.example.styleup
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
@@ -20,10 +21,11 @@ import retrofit2.create
 import retrofit2.http.Body
 import retrofit2.http.POST
 import java.io.ByteArrayOutputStream
+import java.util.Base64
 
 data class PostBackend(
     val username: String?,
-    val imageData: ByteArray
+    val imageData: String
 )
 data class PostBackendResponse(
     val message: String,
@@ -34,6 +36,7 @@ interface CreatePostAPI {
     fun createPost(@Body request: PostBackend): Call<PostBackendResponse>
 }
 class ConfirmPhotoActivity : AppCompatActivity() {
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.confirm_photo_activity)
@@ -73,8 +76,9 @@ class ConfirmPhotoActivity : AppCompatActivity() {
             val byteArrayOutputStream = ByteArrayOutputStream()
             rotatedBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
             val byteArray: ByteArray = byteArrayOutputStream.toByteArray()
+            val base64String: String = Base64.getEncoder().encodeToString(byteArray)
 
-            val request = PostBackend(username, byteArray)
+            val request = PostBackend(username, base64String)
 
             val apiService = retrofit.create(CreatePostAPI::class.java)
             apiService.createPost(request).enqueue(object : Callback<PostBackendResponse> {

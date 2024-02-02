@@ -213,6 +213,7 @@ def create_post():
     image_data = None
     try:
         image_data = data['imageData']
+        image_data = base64.b64decode(image_data)
         image_data = bytearray([(value + 256) % 256 for value in image_data])
     except Exception as err:
         image_data = None

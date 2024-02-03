@@ -20,7 +20,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import android.Manifest
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.icu.text.SimpleDateFormat
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -29,7 +33,14 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.net.Uri
+import android.view.Surface
 import androidx.core.net.toUri
+import com.example.styleup.ml.AutoModel4
+import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.image.ImageProcessor
+import org.tensorflow.lite.support.image.TensorImage
+import org.tensorflow.lite.support.image.ops.ResizeOp
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 class CameraFragment : AppCompatActivity() {
 
@@ -39,19 +50,30 @@ class CameraFragment : AppCompatActivity() {
     private val CAMERA_PERMISSION_REQUEST = 1001
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
+    lateinit var bitmap: Bitmap
+    lateinit var model: AutoModel4
+    lateinit var imageProcessor: ImageProcessor
+    lateinit var imageView: ImageView
+    val paint = Paint()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.camera_fragment)
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
+        imageProcessor = ImageProcessor.Builder().add(ResizeOp(192, 192, ResizeOp.ResizeMethod.BILINEAR)).build()
+        model = AutoModel4.newInstance(this)
+        captureButton = findViewById(R.id.captureButton)
+        textureView = findViewById(R.id.textureView)
+        imageView = findViewById(R.id.photoImageView)
+        paint.setColor(Color.YELLOW)
 
         val backButton: ImageView = findViewById(R.id.backButton)
         backButton.setOnClickListener {
             onBackPressed()
         }
 
-        captureButton = findViewById(R.id.captureButton)
+
 
         val cameraPermission = Manifest.permission.CAMERA
         if (ContextCompat.checkSelfPermission(this, cameraPermission) == PackageManager.PERMISSION_GRANTED) {
@@ -60,15 +82,8 @@ class CameraFragment : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST)
         }
     }
-    private fun getOutputDirectory(): File {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
-        }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else filesDir
-    }
+
     private fun openCamera() {
-        val textureView: PreviewView = findViewById(R.id.previewView)
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
@@ -76,8 +91,18 @@ class CameraFragment : AppCompatActivity() {
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
             val preview = Preview.Builder()
+                .setTargetRotation(textureView.display.rotation)
                 .build()
-                .also { it.setSurfaceProvider(textureView.surfaceProvider) }
+                .also { it.setSurfaceProvider(Preview.SurfaceProvider { request ->
+                    val surfaceTexture = textureView.surfaceTexture
+                    if (surfaceTexture != null) {
+                        surfaceTexture.setDefaultBufferSize(textureView.width, textureView.height)
+                    }
+                    val surface = Surface(surfaceTexture)
+                    request.provideSurface(surface, cameraExecutor, {
+                        // Handle surface destruction if needed
+                    })
+                }) }
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -86,6 +111,59 @@ class CameraFragment : AppCompatActivity() {
                 imageCapture = ImageCapture.Builder()
                     .setTargetRotation(textureView.display.rotation)
                     .build()
+
+                bitmap = textureView.bitmap!!
+                var tensorImage = TensorImage(DataType.UINT8)
+                tensorImage.load(bitmap)
+                tensorImage = imageProcessor.process(tensorImage)
+
+                // Creates inputs for reference.
+                val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 192, 192, 3), DataType.UINT8)
+                inputFeature0.loadBuffer(tensorImage.buffer)
+
+                // Runs model inference and gets result.
+                val outputs = model.process(inputFeature0)
+                // val outputFeature0 = outputs.outputFeature0AsTensorBuffer contains the predictions!
+                /*
+                0 nose
+                1 leftEye
+                2 rightEye
+                3 leftEar
+                4 rightEar
+                5 leftShoulder
+                6 rightShoulder
+                7 leftElbow
+                8 rightElbow
+                9 leftWrist
+                10 rightWrist
+                11 leftHip
+                12 rightHip
+                13 leftKnee
+                14 rightKnee
+                15 leftAnkle
+                16 rightAnkle
+
+                For each keypoint, there are three coordinates: x, y, confidence
+                 */
+
+                val outputFeature0 = outputs.outputFeature0AsTensorBuffer.floatArray
+
+                var mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+                var canvas = Canvas(mutable)
+
+                var h = bitmap.height
+                var w = bitmap.width
+                var x = 0
+
+                while(x <= 49) {
+                    if(outputFeature0.get(x+2) > 0.45) {
+                        // Draw circle on scaled coordinates
+                        canvas.drawCircle(outputFeature0.get(x+1)*w, outputFeature0.get(x)*h, 10f, paint)
+                    }
+                    x += 3  // Go to the next point
+                }
+
+                imageView.setImageBitmap(mutable)
 
                 captureButton.setOnClickListener {
                     Log.d("CameraFragment", "CLICK")
@@ -124,5 +202,12 @@ class CameraFragment : AppCompatActivity() {
                 Log.e("openCamera()", "Use case binding failed", e)
             }
         }, ContextCompat.getMainExecutor(this))
+    }
+    private fun getOutputDirectory(): File {
+        val mediaDir = externalMediaDirs.firstOrNull()?.let {
+            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
+        }
+        return if (mediaDir != null && mediaDir.exists())
+            mediaDir else filesDir
     }
 }

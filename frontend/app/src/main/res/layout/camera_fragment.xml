@@ -37,7 +37,7 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <androidx.camera.view.PreviewView
+    <TextureView
         android:id="@+id/previewView"
         android:layout_width="330dp"
         android:layout_height="500dp"

@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.widget.Button
 
 val backendURL: String = "http://10.0.2.2:5000"
-val webBackendURL: String = "lucazanchetta7.pythonanywhere.com"
+//val backendURL: String = "lucazanchetta7.pythonanywhere.com"
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

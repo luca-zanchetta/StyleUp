@@ -482,7 +482,7 @@ def get_posts_by_username():
 
 ########################### INTERACTIONS MANAGEMENT APIs #################################
 @app.route('/likePost', methods=['POST'])
-def like_post():
+def like_post():        # TODO CHANGE LOGIC
     data = request.get_json()
     username = data['username']
     post_id = data['post']
@@ -501,7 +501,7 @@ def like_post():
 
 
 @app.route('/getLikesByPost', methods=['GET'])
-def get_likes_by_post():
+def get_likes_by_post():    # TODO change logic
     post_id = request.args.get('post')
     usernames = []
     

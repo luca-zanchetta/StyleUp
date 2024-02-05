@@ -194,16 +194,17 @@ def get_shirts():
 def get_shirt_by_id():
     shirt_id = request.args.get('id')
 
-    query = 'SELECT id, shirt, shirt_name FROM Shirt WHERE id = %s;'
+    query = 'SELECT shirt, FROM Shirt WHERE id = %s;'
     values = (shirt_id,)
 
     curr.execute(query, values)
     result = curr.fetchall()
 
     for elem in result:
-        return jsonify({'shirt':elem, 'status':200})
+        encoded_data = base64.b64encode(elem[0]).decode('utf-8')
+        return jsonify({'shirt':encoded_data, 'status':200})
     
-    return jsonify({'message':'No shirt found!', 'status':404})
+    return jsonify({'shirt':None, 'status':404})
 
 
 @app.route('/createPost', methods=['POST'])

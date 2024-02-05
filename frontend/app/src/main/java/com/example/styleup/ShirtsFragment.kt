@@ -33,6 +33,7 @@ import java.util.Date
 import java.util.Locale
 import com.google.gson.annotations.SerializedName
 import android.Manifest
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -52,60 +53,7 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var shirtsAdapter: ShirtsAdapter
-    private val CAMERA_PERMISSION_REQUEST = 1001
 
-    private val takePictureLauncher = //contratto di attività
-        registerForActivityResult(ActivityResultContracts.TakePicture()) { success: Boolean ->
-            if (success) {
-                // La foto è stata scattata con successo
-                // Puoi gestire la foto qui
-            } else {
-                // La foto non è stata scattata o è stata annullata
-            }
-        }
-    private val requestCameraPermission = //autorizzazione per la fotocamera
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                // Il permesso è stato concesso, avvia la fotocamera
-                takePictureLauncher.launch(null)
-            } else {
-                // Il permesso non è stato concesso, gestisci di conseguenza
-                // Puoi informare l'utente o richiedere nuovamente il permesso
-            }
-        }
-
-    private fun takePicture() {
-        val imageCapture = ImageCapture.Builder().build()
-
-        // Creiamo un file temporaneo per salvare l'immagine catturata
-        val photoFile = createTempFile()
-
-        val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-        imageCapture.takePicture(outputFileOptions, ContextCompat.getMainExecutor(requireContext()),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    // Foto salvata con successo
-                    // Puoi gestire la foto qui
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    // Errore durante il salvataggio della foto
-                    // Puoi gestire l'errore qui
-                }
-            })
-    }
-
-    // Metodo per creare un file temporaneo dove salvare l'immagine catturata
-    private fun createTempFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File? = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        )
-    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -167,6 +115,11 @@ class ShirtsFragment: Fragment(), ShirtsAdapter.OnItemClickListener {
         // Initialize and set the adapter
         shirtsAdapter = ShirtsAdapter(finalShirtsList, object : ShirtsAdapter.OnItemClickListener {
             override fun onItemClick(shirt: Shirt) {
+                val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putInt("shirtId", shirt.id)
+                editor.apply()
+
                 val intent = Intent(requireContext(), CameraFragment::class.java)
                 startActivity(intent)
             }

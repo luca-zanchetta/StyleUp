@@ -27,6 +27,7 @@ import android.graphics.Color
 import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.RectF
 import android.icu.text.SimpleDateFormat
 import android.media.Image
 import androidx.camera.core.ImageCapture
@@ -36,6 +37,7 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.net.Uri
+import android.util.Base64
 import android.view.Surface
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
@@ -47,7 +49,18 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Query
 import java.nio.ByteBuffer
+
+data class GetShirtByIdResponse(val shirt: String?, val status: Int)
+interface GetShirtByIdAPI {
+    @GET("getShirtById")
+    fun getShirtById(@Query("id") shirtId: Int): Call<GetShirtByIdResponse>
+}
 
 class CameraFragment : AppCompatActivity() {
 
@@ -62,6 +75,9 @@ class CameraFragment : AppCompatActivity() {
     lateinit var imageProcessor: ImageProcessor
     lateinit var imageView: ImageView
     private lateinit var imageAnalyzer: ImageAnalysis
+    var shirtBitmap: Bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+    var shirtBitmapCopy = shirtBitmap.copy(Bitmap.Config.ARGB_8888, true)
+    lateinit var cameraProvider: ProcessCameraProvider
     val paint = Paint()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,12 +92,46 @@ class CameraFragment : AppCompatActivity() {
         previewView = findViewById(R.id.previewView)
         paint.setColor(Color.YELLOW)
 
+
+        // Retrieve selected shirt
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val shirtId = sharedPreferences.getInt("shirtId", 0)
+
+        val getShirtByIdApiService = retrofit.create(GetShirtByIdAPI::class.java)
+        getShirtByIdApiService.getShirtById(shirtId).enqueue(object : Callback<GetShirtByIdResponse> {
+            override fun onResponse(call: Call<GetShirtByIdResponse>, response: Response<GetShirtByIdResponse>) {
+                Log.d("CameraFragment", "GETSHIRTBYIDOK")
+                try {
+                    // Access the result using response.body()
+                    val result: GetShirtByIdResponse? = response.body()
+
+                    // Check if the result is not null before accessing properties
+                    result?.let {
+                        val status = it.status
+                        if (status == 200) {
+                            Log.d("CameraFragment", "ShirtOK")
+                            val shirtByteArray = Base64.decode(it.shirt, Base64.DEFAULT)
+                            shirtBitmapCopy = BitmapFactory.decodeByteArray(shirtByteArray, 0, shirtByteArray!!.size)
+                        }
+                        else {
+                            Log.e("CameraFragment", "${it.status}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Do nothing
+                    Log.e("CameraFragment", "[ERROR] "+e.toString())
+                }
+            }
+            override fun onFailure(call: Call<GetShirtByIdResponse>, t: Throwable) {
+                Log.e("CameraFragment", "[ERR] ${t.message}")
+                // retry here
+            }
+        })
+
         val backButton: ImageView = findViewById(R.id.backButton)
         backButton.setOnClickListener {
             onBackPressed()
         }
-
-
 
         val cameraPermission = Manifest.permission.CAMERA
         if (ContextCompat.checkSelfPermission(this, cameraPermission) == PackageManager.PERMISSION_GRANTED) {
@@ -91,12 +141,19 @@ class CameraFragment : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraProvider?.unbindAll() // where cameraProvider is a reference to the ProcessCameraProvider
+        cameraExecutor.shutdown()
+        model.close()
+    }
+
     @OptIn(ExperimentalGetImage::class) private fun openCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
         cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
 
             val preview = Preview.Builder()
                 .setTargetRotation(previewView.display.rotation)
@@ -107,14 +164,17 @@ class CameraFragment : AppCompatActivity() {
                 .build()
                 .also {
                     it.setAnalyzer(cameraExecutor) { imageProxy ->
-                        // Process the image and update UI here
-                        if (imageProxy.image != null) {
-                            processAndDrawImage(imageProxy.image!!)
+                        try {
+                            // Process the image and update UI here
+                            if (imageProxy.image != null) {
+                                processAndDrawImage(imageProxy.image!!)
+                            }
+                            else {
+                                Log.e("CameraFragment", "imageProxy.image is null!")
+                            }
+                        } finally {
+                            imageProxy.close()
                         }
-                        else {
-                            Log.e("CameraFragment", "imageProxy.image is null!")
-                        }
-                        imageProxy.close()
                     }
                 }
 
@@ -167,11 +227,6 @@ class CameraFragment : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        model.close()
-    }
-
     private fun processAndDrawImage(image: Image) {
         val yuvToRgbConverter= YuvToRgbConverter(this)
         bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
@@ -196,27 +251,6 @@ class CameraFragment : AppCompatActivity() {
         // Runs model inference and gets result.
         val outputs = model.process(inputFeature0)
         // val outputFeature0 = outputs.outputFeature0AsTensorBuffer contains the predictions!
-        /*
-        0 nose
-        1 leftEye
-        2 rightEye
-        3 leftEar
-        4 rightEar
-        5 leftShoulder
-        6 rightShoulder
-        7 leftElbow
-        8 rightElbow
-        9 leftWrist
-        10 rightWrist
-        11 leftHip
-        12 rightHip
-        13 leftKnee
-        14 rightKnee
-        15 leftAnkle
-        16 rightAnkle
-
-        For each keypoint, there are three coordinates: x, y, confidence
-         */
 
         val outputFeature0 = outputs.outputFeature0AsTensorBuffer.floatArray
 
@@ -227,16 +261,69 @@ class CameraFragment : AppCompatActivity() {
         var w = rotatedBitmap.width
         var x = 0
 
-        while(x <= 49) {
+        /*while(x <= 49) {
             if(outputFeature0.get(x+2) > 0.45) {
                 // Draw circle on scaled coordinates
                 canvas.drawCircle(outputFeature0.get(x+1)*w, outputFeature0.get(x)*h, 10f, paint)
             }
             x += 3  // Go to the next point
-        }
+        }*/
+
+        // Overlay the shirt on the image
+        overlayShirt(mutable, outputFeature0)
+    }
+
+    private fun overlayShirt(image: Bitmap, outputFeature0: FloatArray) {
+        val canvas = Canvas(image)
+        val paint2 = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        val h = image.height.toFloat()
+        val w = image.width.toFloat()
+
+        /*
+        0 nose              y = 0; x = 1; conf = 2
+        1 leftEye           y = 3; x = 4; conf = 5
+        2 rightEye          y = 6; x = 7; conf = 8
+        3 leftEar           y = 9; x = 10; conf = 11
+        4 rightEar          y = 12; x = 13; conf = 14
+        5 leftShoulder      y = 15; x = 16; conf = 17
+        6 rightShoulder     y = 18; x = 19; conf = 20
+        7 leftElbow         y = 21; x = 22; conf = 23
+        8 rightElbow        y = 24; x = 25; conf = 26
+        9 leftWrist         y = 27; x = 28; conf = 29
+        10 rightWrist       y = 30; x = 31; conf = 32
+        11 leftHip          y = 33; x = 34; conf = 35
+        12 rightHip         y = 36; x = 37; conf = 38
+        13 leftKnee         y = 39; x = 40; conf = 41
+        14 rightKnee        y = 42; x = 43; conf = 44
+        15 leftAnkle        y = 45; x = 46; conf = 47
+        16 rightAnkle       y = 48; x = 49; conf = 50
+
+        For each keypoint, there are three coordinates: x, y, confidence
+         */
+
+        // Get the corner points
+        val topLeftX = outputFeature0[16] * w
+        val topLeftY = outputFeature0[15] * h
+        val topRightX = outputFeature0[19] * w
+        val topRightY = outputFeature0[18] * h
+        val bottomLeftX = outputFeature0[34] * w
+        val bottomLeftY = outputFeature0[33] * h
+        val bottomRightX = outputFeature0[37] * w
+        val bottomRightY = outputFeature0[36] * h
+
+        // Calculate the position to overlay the shirt
+        val left = topLeftX
+        val top = topLeftY
+        val right = topRightX
+        val bottom = bottomRightY
+
+
+        // Draw the shirt on the canvas
+        canvas.drawBitmap(shirtBitmapCopy, null, RectF(left, top, right, bottom), paint2)
 
         runOnUiThread {
-            imageView.setImageBitmap(mutable)
+            imageView.setImageBitmap(image)
         }
     }
 

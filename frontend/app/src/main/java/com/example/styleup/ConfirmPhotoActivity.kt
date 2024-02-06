@@ -47,7 +47,7 @@ class ConfirmPhotoActivity : AppCompatActivity() {
         val savedUri = sharedPreferences.getString("savedUri", "")?.toUri()
         val bitmap = BitmapFactory.decodeFile(savedUri?.path)
         val matrix = Matrix()
-        matrix.postRotate(90f)
+        matrix.postRotate(0f)
         val rotatedBitmap = Bitmap.createBitmap(bitmap,0, 0, bitmap.width, bitmap.height, matrix, true)
         photoImageView.setImageBitmap(rotatedBitmap)
 

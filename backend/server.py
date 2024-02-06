@@ -194,7 +194,7 @@ def get_shirts():
 def get_shirt_by_id():
     shirt_id = request.args.get('id')
 
-    query = 'SELECT shirt, FROM Shirt WHERE id = %s;'
+    query = 'SELECT shirt FROM Shirt WHERE id = %s;'
     values = (shirt_id,)
 
     curr.execute(query, values)

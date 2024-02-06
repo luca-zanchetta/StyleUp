@@ -54,6 +54,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
 
 data class GetShirtByIdResponse(val shirt: String?, val status: Int)
@@ -76,9 +77,11 @@ class CameraFragment : AppCompatActivity() {
     lateinit var imageView: ImageView
     private lateinit var imageAnalyzer: ImageAnalysis
     var shirtBitmap: Bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+    lateinit var shirtImage: Bitmap
     var shirtBitmapCopy = shirtBitmap.copy(Bitmap.Config.ARGB_8888, true)
     lateinit var cameraProvider: ProcessCameraProvider
     val paint = Paint()
+    var ok: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,7 +95,26 @@ class CameraFragment : AppCompatActivity() {
         previewView = findViewById(R.id.previewView)
         paint.setColor(Color.YELLOW)
 
+        val backButton: ImageView = findViewById(R.id.backButton)
+        backButton.setOnClickListener {
+            val intent = Intent(this, FeedActivity::class.java)
+            startActivity(intent)
+        }
 
+        val cameraPermission = Manifest.permission.CAMERA
+        if (ContextCompat.checkSelfPermission(this, cameraPermission) == PackageManager.PERMISSION_GRANTED) {
+            openCamera()
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST)
+        }
+
+        getSelectedShirt {
+            shirtImage = it
+            ok = true
+        }
+    }
+
+    private fun getSelectedShirt(callback: (Bitmap) -> Unit) {
         // Retrieve selected shirt
         val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val shirtId = sharedPreferences.getInt("shirtId", 0)
@@ -100,7 +122,6 @@ class CameraFragment : AppCompatActivity() {
         val getShirtByIdApiService = retrofit.create(GetShirtByIdAPI::class.java)
         getShirtByIdApiService.getShirtById(shirtId).enqueue(object : Callback<GetShirtByIdResponse> {
             override fun onResponse(call: Call<GetShirtByIdResponse>, response: Response<GetShirtByIdResponse>) {
-                Log.d("CameraFragment", "GETSHIRTBYIDOK")
                 try {
                     // Access the result using response.body()
                     val result: GetShirtByIdResponse? = response.body()
@@ -117,6 +138,7 @@ class CameraFragment : AppCompatActivity() {
                             Log.e("CameraFragment", "${it.status}")
                         }
                     }
+                    callback(shirtBitmapCopy)
                 } catch (e: Exception) {
                     // Do nothing
                     Log.e("CameraFragment", "[ERROR] "+e.toString())
@@ -127,18 +149,6 @@ class CameraFragment : AppCompatActivity() {
                 // retry here
             }
         })
-
-        val backButton: ImageView = findViewById(R.id.backButton)
-        backButton.setOnClickListener {
-            onBackPressed()
-        }
-
-        val cameraPermission = Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(this, cameraPermission) == PackageManager.PERMISSION_GRANTED) {
-            openCamera()
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST)
-        }
     }
 
     override fun onDestroy() {
@@ -150,7 +160,6 @@ class CameraFragment : AppCompatActivity() {
 
     @OptIn(ExperimentalGetImage::class) private fun openCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
         cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
@@ -191,36 +200,6 @@ class CameraFragment : AppCompatActivity() {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(this, cameraSelector, imageCapture, imageAnalyzer)
 
-                captureButton.setOnClickListener {
-                    Log.d("CameraFragment", "CLICK")
-
-                    val photoFile = File(
-                        outputDirectory,
-                        SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(System.currentTimeMillis()) + ".jpg"
-                    )
-
-                    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-                    imageCapture.takePicture(
-                        outputOptions,
-                        cameraExecutor,
-                        object : ImageCapture.OnImageSavedCallback {
-                            override fun onError(error: ImageCaptureException) {
-                                Log.e("Capture Image", "Error capturing image: ${error.message}", error)
-                            }
-
-                            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                Log.d("Capture Image", "Image captured successfully: ${output.savedUri}")
-                                val editor = sharedPreferences.edit()
-                                editor.putString("savedUri", output.savedUri.toString())
-                                editor.apply()
-
-                                val intent = Intent(this@CameraFragment, ConfirmPhotoActivity::class.java)
-                                startActivity(intent)
-                            }
-                        }
-                    )
-                }
             } catch (e: Exception) {
                 Log.e("openCamera()", "Use case binding failed", e)
             }
@@ -305,12 +284,19 @@ class CameraFragment : AppCompatActivity() {
         // Get the corner points
         val topLeftX = outputFeature0[16] * w
         val topLeftY = outputFeature0[15] * h
+        val leftShoulderConf = outputFeature0[17]
+
         val topRightX = outputFeature0[19] * w
         val topRightY = outputFeature0[18] * h
+        val rightShoulderConf = outputFeature0[20]
+
         val bottomLeftX = outputFeature0[34] * w
         val bottomLeftY = outputFeature0[33] * h
+        val leftHipConf = outputFeature0[35]
+
         val bottomRightX = outputFeature0[37] * w
         val bottomRightY = outputFeature0[36] * h
+        val rightHipConf = outputFeature0[38]
 
         // Calculate the position to overlay the shirt
         val left = topLeftX
@@ -320,12 +306,55 @@ class CameraFragment : AppCompatActivity() {
 
 
         // Draw the shirt on the canvas
-        canvas.drawBitmap(shirtBitmapCopy, null, RectF(left, top, right, bottom), paint2)
+        if(ok) {
+            canvas.drawBitmap(shirtBitmapCopy, null, RectF(left, top, right, bottom), null)
 
-        runOnUiThread {
-            imageView.setImageBitmap(image)
+            runOnUiThread {
+                imageView.setImageBitmap(image)
+
+                val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                captureButton.setOnClickListener {
+                    val photoFile = File(
+                        outputDirectory,
+                        SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(System.currentTimeMillis()) + ".jpg"
+                    )
+
+                    FileOutputStream(photoFile).use {outputStream ->
+                        image.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    }
+                    val savedUri = Uri.fromFile(photoFile)
+                    val editor = sharedPreferences.edit()
+                    editor.putString("savedUri", savedUri.toString())
+                    editor.apply()
+
+                    val intent = Intent(this@CameraFragment, ConfirmPhotoActivity::class.java)
+                    startActivity(intent)
+                }
+            }
         }
     }
+
+    /*private fun overlayShirt(cameraBitmap: Bitmap, outputFeature0: FloatArray) {
+        val canvas = Canvas(cameraBitmap)
+
+        val resourceId = R.drawable.white_shirt
+        //var shirtImage = BitmapFactory.decodeResource(resources, resourceId)
+
+
+        if(ok) {
+            val matrix = Matrix()
+            // Scale the shirt bitmap to fit the camera view
+            val scaleFactorX = cameraBitmap.width.toFloat() / shirtImage.width
+            val scaleFactorY = cameraBitmap.height.toFloat() / shirtImage.height
+            matrix.postScale(scaleFactorX, scaleFactorY)
+
+            canvas.drawBitmap(shirtImage, matrix, null)
+
+            runOnUiThread{
+                imageView.setImageBitmap(cameraBitmap)
+            }
+        }
+    }*/
 
     private fun getOutputDirectory(): File {
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
@@ -333,5 +362,19 @@ class CameraFragment : AppCompatActivity() {
         }
         return if (mediaDir != null && mediaDir.exists())
             mediaDir else filesDir
+    }
+
+    fun resizeBitmap(bitmap: Bitmap, newWidth: Int, newHeight: Int): Bitmap {
+        val scaledBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
+
+        val scaleX = newWidth.toFloat() / bitmap.width
+        val scaleY = newHeight.toFloat() / bitmap.height
+        val scaleMatrix = Matrix()
+        scaleMatrix.setScale(scaleX, scaleY, 0f, 0f)
+
+        val canvas = Canvas(scaledBitmap)
+        canvas.drawBitmap(bitmap, scaleMatrix, Paint(Paint.FILTER_BITMAP_FLAG))
+
+        return scaledBitmap
     }
 }

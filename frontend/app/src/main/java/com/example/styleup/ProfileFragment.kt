@@ -5,6 +5,8 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -14,8 +16,17 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
+import android.view.MenuItem
+import android.widget.BaseAdapter
+import android.widget.Button
+import android.widget.ListView
+import android.widget.Toast
+import androidx.appcompat.widget.PopupMenu
+interface FriendItemClickListener {
+    fun onRemoveFriendClicked(friendName: String)
+}
 
-class ProfileFragment: Fragment() {
+class ProfileFragment: Fragment(), FriendItemClickListener {
 
     private lateinit var noPostsMessage: TextView
 
@@ -28,6 +39,8 @@ class ProfileFragment: Fragment() {
 
     private lateinit var postRecyclerView: RecyclerView
     private lateinit var postAdapter: PostAdapter
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -86,10 +99,47 @@ class ProfileFragment: Fragment() {
         // Aggiorna la visibilità del messaggio in base all'elenco dei post
         updatePostList(getSamplePosts())
 
+        //friends button
+        val friendsButton = view.findViewById<Button>(R.id.friendsButton)
+        friendsButton.setOnClickListener {
+            showFriendList()
+        }
+
 
 
         return view
 
+    }
+
+    private fun showFriendList() {
+        val friends = listOf("Friend 1", "Friend 2", "Friend 3")
+        val adapter = FriendListAdapter(friends, this)
+        val listView = ListView(requireContext())
+        listView.adapter = adapter
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Friends")
+            .setView(listView)
+            .setNegativeButton("Close") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    override fun onRemoveFriendClicked(friendName: String) {
+        showConfirmationDialog(friendName)
+    }
+
+    private fun showConfirmationDialog(friend: String) {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Delete friend")
+            .setMessage("Vuoi davvero eliminare $friend?")
+            .setPositiveButton("Conferma") { dialog, which ->
+                // Elimina l'amico
+                Toast.makeText(requireContext(), "Amico $friend eliminato", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Annulla", null)
+            .show()
     }
 
     private fun updatePostList(samplePosts: List<Post>) {
@@ -132,4 +182,38 @@ class ProfileFragment: Fragment() {
         usernameText.text = username
     }
 
+}
+
+class FriendListAdapter(
+    private val friends: List<String>,
+    private val clickListener: FriendItemClickListener
+) : BaseAdapter() {
+
+    override fun getCount(): Int {
+        return friends.size
+    }
+
+    override fun getItem(position: Int): Any {
+        return friends[position]
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+        val view = convertView ?: LayoutInflater.from(parent?.context).inflate(R.layout.friend_in_list, parent, false)
+        val friendNameTextView = view.findViewById<TextView>(R.id.usernameTextView)
+        val removeFriendIcon = view.findViewById<ImageView>(R.id.removeFriendIcon)
+
+        val friendName = friends[position]
+        friendNameTextView.text = friendName
+
+        // Imposta il click listener sull'icona di cancellazione
+        removeFriendIcon.setOnClickListener {
+            clickListener.onRemoveFriendClicked(friendName)
+        }
+
+        return view
+    }
 }

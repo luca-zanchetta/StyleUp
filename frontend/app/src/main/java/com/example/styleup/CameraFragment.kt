@@ -282,32 +282,43 @@ class CameraFragment : AppCompatActivity() {
          */
 
         // Get the corner points
-        val topLeftX = outputFeature0[16] * w
-        val topLeftY = outputFeature0[15] * h
+        val topLeftX = outputFeature0[15] * w
+        val topLeftY = outputFeature0[16] * h
         val leftShoulderConf = outputFeature0[17]
 
-        val topRightX = outputFeature0[19] * w
-        val topRightY = outputFeature0[18] * h
+        val topRightX = outputFeature0[18] * w
+        val topRightY = outputFeature0[19] * h
         val rightShoulderConf = outputFeature0[20]
 
-        val bottomLeftX = outputFeature0[34] * w
-        val bottomLeftY = outputFeature0[33] * h
+        val bottomLeftX = outputFeature0[33] * w
+        val bottomLeftY = outputFeature0[34] * h
         val leftHipConf = outputFeature0[35]
 
-        val bottomRightX = outputFeature0[37] * w
-        val bottomRightY = outputFeature0[36] * h
+        val bottomRightX = outputFeature0[36] * w
+        val bottomRightY = outputFeature0[37] * h
         val rightHipConf = outputFeature0[38]
 
         // Calculate the position to overlay the shirt
-        val left = topLeftX
-        val top = topLeftY
-        val right = topRightX
-        val bottom = bottomRightY
+        val left = minOf(topLeftX, bottomLeftX) // Left edge of the rectangle (minimum x-coordinate of shoulders and hips)
+        val top = minOf(topLeftY, topRightY) // Top edge of the rectangle (minimum y-coordinate of shoulders)
+        val right = maxOf(topRightX, bottomRightX) // Right edge of the rectangle (maximum x-coordinate of shoulders and hips)
+        val bottom = maxOf(bottomLeftY, bottomRightY) // Bottom edge of the rectangle (maximum y-coordinate of hips)
+
+        Log.d("CameraFragment", "Left: ${left}, Top: ${top}, Right: ${right}, Bottom: ${bottom}")
 
 
         // Draw the shirt on the canvas
         if(ok) {
-            canvas.drawBitmap(shirtBitmapCopy, null, RectF(left, top, right, bottom), null)
+            var x = 0
+
+            while(x <= 49) {
+                if(outputFeature0.get(x+2) > 0.45) {
+                    // Draw circle on scaled coordinates
+                    canvas.drawBitmap(shirtBitmapCopy, null, RectF(left, top, right, bottom), paint)
+                }
+                x += 3  // Go to the next point
+            }
+
 
             runOnUiThread {
                 imageView.setImageBitmap(image)

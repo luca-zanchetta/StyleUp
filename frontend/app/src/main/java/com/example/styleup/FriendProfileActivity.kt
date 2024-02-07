@@ -12,5 +12,8 @@ class FriendProfileActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.backButton).setOnClickListener {
             onBackPressed()
         }
+
+        val friendName = intent.getStringExtra("friendName")
+        // Aggiungi il codice per visualizzare il profilo dell'amico utilizzando friendName
     }
 }

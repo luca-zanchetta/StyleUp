@@ -3,11 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    
     <uses-feature android:name="android.hardware.camera.any" />
-
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -42,14 +45,15 @@
                 android:value=".ProfileFragment" />
         </activity>
         <activity
-            android:name=".PoseDetectionActivity"
-            android:label="PoseDetectionActivity" />
-        <activity
             android:name=".CameraFragment"
             android:label="CameraFragment" />
         <activity
             android:name=".ConfirmPhotoActivity"
             android:label="ConfirmPhotoActivity" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
     </application>
 
 </manifest>

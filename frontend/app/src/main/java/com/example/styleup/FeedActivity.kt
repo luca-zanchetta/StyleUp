@@ -3,10 +3,13 @@ package com.example.styleup
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
@@ -29,7 +32,7 @@ class FeedActivity: AppCompatActivity() {
 
         val notificationIcon: ImageView = findViewById(R.id.notificationIcon)
         notificationIcon.setOnClickListener {
-            showConfirmationDialog()
+            openOptionsMenu()
         }
 
         mainFragmentContainer = findViewById(R.id.mainFragmentContainers)
@@ -70,17 +73,37 @@ class FeedActivity: AppCompatActivity() {
         transaction.commit()
     }
 
-    private fun showConfirmationDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Conferma")
-            .setMessage("Vuoi davvero eseguire questa azione?")
-            .setPositiveButton("Conferma", DialogInterface.OnClickListener { dialog, which ->
-                // Codice da eseguire se l'utente conferma
-                // Aggiungi qui la logica desiderata
-            })
-            .setNegativeButton("Annulla", DialogInterface.OnClickListener { dialog, which ->
-                // Codice da eseguire se l'utente annulla
-            })
-            .show()
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_notifications, menu)
+        return true
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.notificationIcon -> {
+                // Apri la tendina di menu delle notifiche
+                val popupMenu = PopupMenu(this, findViewById(R.id.notificationIcon))
+                popupMenu.menuInflater.inflate(R.menu.menu_notifications, popupMenu.menu)
+                popupMenu.setOnMenuItemClickListener { menuItem ->
+                    // Gestisci il clic sugli elementi del menu delle notifiche
+                    when (menuItem.itemId) {
+                        R.id.notification_item_1 -> {
+                            // Azione per l'elemento di menu 1
+                            true
+                        }
+                        R.id.notification_item_2 -> {
+                            // Azione per l'elemento di menu 2
+                            true
+                        }
+                        // Aggiungi altri casi per gli altri elementi di menu, se necessario
+                        else -> false
+                    }
+                }
+                popupMenu.show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
 }

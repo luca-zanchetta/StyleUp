@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("kotlin-kapt")
 }
 
 android {
@@ -10,7 +12,7 @@ android {
     defaultConfig {
         applicationId = "com.example.styleup"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -37,9 +39,26 @@ android {
     buildFeatures {
         viewBinding = true
         mlModelBinding = true
+        dataBinding = true
     }
 
 }
+
+secrets {
+    // Optionally specify a different file name containing your secrets.
+    // The plugin defaults to "local.properties"
+    propertiesFileName = "secrets.properties"
+
+    // A properties file containing default secret values. This file can be
+    // checked in version control.
+    defaultPropertiesFileName = "local.defaults.properties"
+
+    // Configure which keys should be ignored by the plugin by providing regular expressions.
+    // "sdk.dir" is ignored by default.
+    ignoreList.add("keyToIgnore") // Ignore the key "keyToIgnore"
+    ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
+}
+
 
 
 
@@ -79,7 +98,6 @@ dependencies {
     implementation("androidx.camera:camera-core:1.1.0-alpha11")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
-    implementation("com.google.android.gms:play-services-gcm:17.0.0")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
-    implementation("com.google.android.gms:play-services-location:21.1.0")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.android.gms:play-services-location:20.0.0")
 }

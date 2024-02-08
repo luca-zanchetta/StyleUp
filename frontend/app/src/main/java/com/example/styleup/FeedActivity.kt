@@ -3,6 +3,7 @@ package com.example.styleup
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
@@ -117,8 +118,10 @@ class FeedActivity: AppCompatActivity() {
         }
 
         icon4.setOnClickListener {
-            val mapFragment = MapFragment()
-            setMainFragment(mapFragment)
+            //val mapFragment = MapFragment()
+            //setMainFragment(mapFragment)
+            val intent = Intent(this, MapActivity::class.java)
+            startActivity(intent)
         }
 
     }

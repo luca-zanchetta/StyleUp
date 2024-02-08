@@ -3,6 +3,7 @@ package com.example.styleup
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
@@ -21,7 +22,6 @@ import com.google.android.gms.tasks.Task
 class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     private val FINE_PERMISSION_CODE = 1
     private lateinit var myMap: GoogleMap
-    private lateinit var currentLocation: Location
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,9 +30,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         getLastLocation()
-
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
     }
 
     private fun getLastLocation() {
@@ -43,20 +40,19 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         val task: Task<Location> = fusedLocationProviderClient.lastLocation
         task.addOnSuccessListener { location ->
             if (location != null) {
-                currentLocation = location
-
                 val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
                 mapFragment.getMapAsync(this)
+
+                // Move the map initialization logic here
+                val sydney = LatLng(location.latitude, location.longitude)
+                myMap.addMarker(MarkerOptions().position(sydney).title("My Location"))
+                myMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
             }
         }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         myMap = googleMap
-
-        val sydney = LatLng(currentLocation.latitude, currentLocation.longitude)
-        myMap.addMarker(MarkerOptions().position(sydney).title("My Location"))
-        myMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -70,3 +66,4 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 }
+

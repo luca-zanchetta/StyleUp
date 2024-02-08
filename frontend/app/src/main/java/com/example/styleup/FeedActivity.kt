@@ -132,10 +132,10 @@ class FeedActivity: AppCompatActivity() {
         }
 
         icon4.setOnClickListener {
-            //val mapFragment = MapFragment()
-            //setMainFragment(mapFragment)
-            val intent = Intent(this, MapActivity::class.java)
-            startActivity(intent)
+            val mapFragment = MapFragment()
+            setMainFragment(mapFragment)
+            //val intent = Intent(this, MapActivity::class.java)
+            //startActivity(intent)
         }
 
     }

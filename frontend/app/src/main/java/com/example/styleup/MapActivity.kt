@@ -42,17 +42,34 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             if (location != null) {
                 val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
                 mapFragment.getMapAsync(this)
+            }
+        }
+    }
 
-                // Move the map initialization logic here
+    /*override fun onMapReady(googleMap: GoogleMap) {
+        myMap = googleMap
+        val task: Task<Location> = fusedLocationProviderClient.lastLocation
+        task.addOnSuccessListener { location ->
+            if (location != null) {
                 val sydney = LatLng(location.latitude, location.longitude)
                 myMap.addMarker(MarkerOptions().position(sydney).title("My Location"))
                 myMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
             }
         }
-    }
+    }*/
 
     override fun onMapReady(googleMap: GoogleMap) {
         myMap = googleMap
+        val task: Task<Location> = fusedLocationProviderClient.lastLocation
+        task.addOnSuccessListener { location ->
+            if (location != null) {
+                val sydney = LatLng(location.latitude, location.longitude)
+                myMap.addMarker(MarkerOptions().position(sydney).title("My Location"))
+                myMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+                myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(sydney, 15f)) // Zoom level can be adjusted
+                myMap.isMyLocationEnabled = true // Enable the "My Location" layer
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

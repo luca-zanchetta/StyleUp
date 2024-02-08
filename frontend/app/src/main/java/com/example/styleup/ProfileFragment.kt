@@ -205,6 +205,8 @@ class FriendListAdapter(
         val view = convertView ?: LayoutInflater.from(parent?.context).inflate(R.layout.friend_in_list, parent, false)
         val friendNameTextView = view.findViewById<TextView>(R.id.usernameTextView)
         val removeFriendIcon = view.findViewById<ImageView>(R.id.removeFriendIcon)
+        val likeButton: ImageView = view.findViewById<ImageView>(R.id.likeButton)
+        var isLiked = false
 
         val friendName = friends[position]
         friendNameTextView.text = friendName
@@ -213,6 +215,19 @@ class FriendListAdapter(
         removeFriendIcon.setOnClickListener {
             clickListener.onRemoveFriendClicked(friendName)
         }
+
+        likeButton.setOnClickListener {
+            // Inverti lo stato del like
+            isLiked = !isLiked
+
+            // Aggiorna l'immagine del pulsante Like in base allo stato attuale
+            if (isLiked) {
+                likeButton.setImageResource(R.drawable.ic_like_filled) // Icona riempita del like
+            } else {
+                likeButton.setImageResource(R.drawable.ic_like) // Icona del like vuota
+            }
+        }
+
 
         return view
     }

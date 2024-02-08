@@ -77,7 +77,6 @@ CREATE TABLE IF NOT EXISTS Notification (
     text VARCHAR(255) NOT NULL,
     username_from VARCHAR(100) NOT NULL,
     username_to VARCHAR(100) NOT NULL,
-    read BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (username_from) 
         REFERENCES Person (username)
         ON DELETE CASCADE,

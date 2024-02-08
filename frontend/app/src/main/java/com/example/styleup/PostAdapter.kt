@@ -41,6 +41,7 @@ class PostAdapter(private val postList: List<Post>):
         val postImage: ImageView = itemView.findViewById(R.id.postImage)
         val usernameText: TextView = itemView.findViewById(R.id.usernameText)
         val likeButton: ImageView = itemView.findViewById(R.id.likeButton)
+        var isLiked = false
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -58,6 +59,19 @@ class PostAdapter(private val postList: List<Post>):
 
         // Imposta il nome utente
         holder.usernameText.text = currentPost.username
+
+        // Like button
+        holder.likeButton.setOnClickListener {
+            // Inverti lo stato del like
+            holder.isLiked = !holder.isLiked
+
+            // Aggiorna l'immagine del pulsante Like in base allo stato attuale
+            if (holder.isLiked) {
+                holder.likeButton.setImageResource(R.drawable.ic_like_filled) // Icona riempita del like
+            } else {
+                holder.likeButton.setImageResource(R.drawable.ic_like) // Icona del like vuota
+            }
+        }
 
         // Aggiungi un listener per il click sul pulsante di eliminazione del post
         holder.deletePostButton.setOnClickListener {

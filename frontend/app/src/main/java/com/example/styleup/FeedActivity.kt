@@ -9,8 +9,10 @@ import android.util.Base64
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
@@ -41,7 +43,7 @@ class FeedActivity: AppCompatActivity() {
 
         val notificationIcon: ImageView = findViewById(R.id.notificationIcon)
         notificationIcon.setOnClickListener {
-            openOptionsMenu()
+            showNotificationMenu(it)
         }
 
         mainFragmentContainer = findViewById(R.id.mainFragmentContainers)
@@ -101,6 +103,15 @@ class FeedActivity: AppCompatActivity() {
             setMainFragment(profileFragment)
         }
 
+        if(fragmentSharedPreferences == "friends") {
+            val editor = sharedPreferences.edit()
+            editor.remove("window")
+            editor.apply()
+
+            val friendsFragment = FriendsFragment()
+            setMainFragment(friendsFragment)
+        }
+
         icon1 = findViewById(R.id.icon1)
         icon2 = findViewById(R.id.icon2)
         icon3 = findViewById(R.id.icon3)
@@ -135,36 +146,35 @@ class FeedActivity: AppCompatActivity() {
         transaction.commit()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    private fun showNotificationMenu(view: View) {
+        val popupMenu = PopupMenu(this, view)
+        popupMenu.inflate(R.menu.menu_notifications)
+
+        popupMenu.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.notification_item_1 -> {
+                    // Perform action when notification item is clicked
+                    Toast.makeText(this, "Notification clicked", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                // Add more cases for other menu items if needed
+                else -> false
+            }
+        }
+
+        popupMenu.show()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_notifications, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        Log.d("FeedActivity", "Menù open")
         return when (item.itemId) {
-            R.id.notificationIcon -> {
-                // Apri la tendina di menu delle notifiche
-                val popupMenu = PopupMenu(this, findViewById(R.id.notificationIcon))
-                popupMenu.menuInflater.inflate(R.menu.menu_notifications, popupMenu.menu)
-                popupMenu.setOnMenuItemClickListener { menuItem ->
-                    // Gestisci il clic sugli elementi del menu delle notifiche
-                    when (menuItem.itemId) {
-                        R.id.notification_item_1 -> {
-                            // Azione per l'elemento di menu 1
-                            Log.d("FeedActivity", "Notification Item 1 selected")
-                            true
-                        }
-                        R.id.notification_item_2 -> {
-                            // Azione per l'elemento di menu 2
-                            Log.d("FeedActivity", "Notification Item 2 selected")
-                            true
-                        }
-                        // Aggiungi altri casi per gli altri elementi di menu, se necessario
-                        else -> false
-                    }
-                }
-                popupMenu.show()
+            R.id.notification_item_1 -> {
+                // Handle notification menu item click here if needed
+                Toast.makeText(this, "Notification clicked", Toast.LENGTH_SHORT).show()
                 true
             }
             else -> super.onOptionsItemSelected(item)

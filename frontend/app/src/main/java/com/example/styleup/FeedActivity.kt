@@ -3,6 +3,7 @@ package com.example.styleup
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.FrameLayout
@@ -79,6 +80,7 @@ class FeedActivity: AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        Log.d("FeedActivity", "Menù open")
         return when (item.itemId) {
             R.id.notificationIcon -> {
                 // Apri la tendina di menu delle notifiche
@@ -89,10 +91,12 @@ class FeedActivity: AppCompatActivity() {
                     when (menuItem.itemId) {
                         R.id.notification_item_1 -> {
                             // Azione per l'elemento di menu 1
+                            Log.d("FeedActivity", "Notification Item 1 selected")
                             true
                         }
                         R.id.notification_item_2 -> {
                             // Azione per l'elemento di menu 2
+                            Log.d("FeedActivity", "Notification Item 2 selected")
                             true
                         }
                         // Aggiungi altri casi per gli altri elementi di menu, se necessario

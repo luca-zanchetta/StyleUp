@@ -257,6 +257,50 @@ def delete_post():
 # Maybe there should be another api for the shirt try-on, but I don't know
 
 ############################## FRIENDS MANAGEMENT APIs ################################
+@app.route('/getUsers', methods=['GET'])
+def get_users():
+    username = request.args.get('username')
+    
+    usernames = []
+    
+    query = "SELECT username FROM Person;"
+    curr.execute(query)
+    result = curr.fetchall()
+    
+    for user in result:
+        if user[0] != username:
+            usernames.append(str(user[0]))
+    
+    if len(usernames) == 0:
+        return jsonify({"usernames":[], "status":404})
+    
+    return jsonify({"usernames":usernames, "status":200})
+
+
+@app.route('/getUsersByUsername', methods=['GET'])
+def get_users_by_username():
+    usernames = []
+    
+    my_username = request.args.get('myUsername')
+    username_search = request.args.get('usernameSearch')
+    
+    if username_search == "":
+        return jsonify({'usernames':[], "status": 400})
+    
+    query = f"SELECT username from Person WHERE username REGEXP '{username_search}.*';"
+    curr.execute(query)
+    result = curr.fetchall()
+    
+    for user in result:
+        if user[0] != my_username:
+            usernames.append(str(user[0]))
+            
+    if len(usernames) == 0:
+        return jsonify({'usernames':[], 'status':404})
+    
+    return jsonify({'usernames':usernames, 'status':200})
+
+
 @app.route('/getUserByUsername', methods=['GET'])
 def get_user_by_username():
     username = request.args.get('username')

@@ -58,20 +58,6 @@ interface GetPostsByUsernameAPI {
     @GET("getPostsByUsername")
     fun getPostsByUsername(@Query("username") username: String?):Call<GetPostsResponse>
 }
-val loggingInterceptor = HttpLoggingInterceptor().apply {
-    level = HttpLoggingInterceptor.Level.BODY
-}
-val okHttpClient = OkHttpClient.Builder()
-    .connectTimeout(60, TimeUnit.SECONDS)
-    .readTimeout(60, TimeUnit.SECONDS)
-    .writeTimeout(60, TimeUnit.SECONDS)
-    .build()
-
-val retrofit = Retrofit.Builder()
-    .baseUrl(backendURL)
-    .client(okHttpClient)
-    .addConverterFactory(GsonConverterFactory.create())
-    .build()
 val apiService = retrofit.create(DeleteAccountAPI::class.java)
 val apiService2 = retrofit.create(GetProfileImageAPI::class.java)
 val getPostsByUsernameApiService = retrofit.create(GetPostsByUsernameAPI::class.java)

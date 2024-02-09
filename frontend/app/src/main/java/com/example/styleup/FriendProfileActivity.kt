@@ -3,6 +3,7 @@ package com.example.styleup
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 
@@ -24,6 +25,5 @@ class FriendProfileActivity : AppCompatActivity() {
         }
 
         val friendName = intent.getStringExtra("friendName")
-        // Aggiungi il codice per visualizzare il profilo dell'amico utilizzando friendName
     }
 }

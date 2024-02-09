@@ -310,7 +310,12 @@ def get_user_by_username():
     result = curr.fetchall()
     
     for user in result:
-        return_user = {'username':str(user[0]), 'profileImage':base64.b64encode(user[1]).decode('utf-8')}
+        if user[1] is not None:
+            return_user = {'username':str(user[0]), 'profileImage':base64.b64encode(user[1]).decode('utf-8')}
+        else:
+            return_user = {'username':str(user[0]), 'profileImage':""}
+            
+        print(f"[INFO] return_user: {return_user}")
         return jsonify({'user':return_user, 'status':200})
     
     return jsonify({'user':[], 'status':404})

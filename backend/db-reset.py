@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS Notification (
     text VARCHAR(255) NOT NULL,
     username_from VARCHAR(100) NOT NULL,
     username_to VARCHAR(100) NOT NULL,
+    notification_read TINYINT NOT NULL DEFAULT 0,
     FOREIGN KEY (username_from) 
         REFERENCES Person (username)
         ON DELETE CASCADE,
@@ -86,7 +87,9 @@ CREATE TABLE IF NOT EXISTS Notification (
     CONSTRAINT type_constraint 
         CHECK (type='like' OR type='friendship_request'),
     CONSTRAINT usernames_constraint
-        CHECK (username_from <> username_to)
+        CHECK (username_from <> username_to),
+    CONSTRAINT read_constraint
+        CHECK (notification_read=0 OR notification_read=1)
 );
 '''
 try:

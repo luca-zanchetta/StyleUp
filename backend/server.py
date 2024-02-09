@@ -305,12 +305,13 @@ def get_users_by_username():
 def get_user_by_username():
     username = request.args.get('username')
     
-    query = f"SELECT * from Person WHERE username REGEXP '{username}.*';"
+    query = f"SELECT username, profile_image from Person WHERE username REGEXP '{username}.*';"
     curr.execute(query)
     result = curr.fetchall()
     
     for user in result:
-        return jsonify({'user':user, 'status':200})
+        return_user = {'username':str(user[0]), 'profileImage':base64.b64encode(user[1]).decode('utf-8')}
+        return jsonify({'user':return_user, 'status':200})
     
     return jsonify({'user':[], 'status':404})
 

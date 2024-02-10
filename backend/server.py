@@ -325,16 +325,34 @@ def get_notifications():
     username = request.args.get('username')
     notifications = []
     
-    query = 'SELECT * FROM Notification WHERE username = %s;'
+    query = 'SELECT notification_id, type, text FROM Notification WHERE username_to = %s AND notification_read = 0;'
     values = (username,)
     
     curr.execute(query, values)
     result = curr.fetchall()
     
     for elem in result:
-        notifications.append(elem)
+        notifications.append({'id':elem[0], 'type':elem[1], 'text':elem[2]})
     
     return jsonify({'notifications':notifications, "status":200})
+
+
+@app.route('/readNotification', methods=['POST'])
+def read_notification():
+    data = request.get_json()
+    id = data['id']
+
+    query = "UPDATE Notification SET notification_read = %s WHERE notification_id = %s;"
+    values = (1, id)
+
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+    except Exception as err:
+        print('[ERROR] There was an error while reading the notification: '+str(err))
+        return jsonify({'message':'ERROR: Read notification operation was not successfully performed.', 'status':500})
+    
+    return jsonify({'message':'The notification has been read successfully!', 'status':200})
 
 
 @app.route('/sendFriendshipRequest', methods=['POST'])

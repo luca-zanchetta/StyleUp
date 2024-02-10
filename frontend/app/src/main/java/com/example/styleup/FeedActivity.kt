@@ -22,6 +22,24 @@ import androidx.fragment.app.FragmentTransaction
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Query
+
+data class Notification(val id: Int, val type: String, val text: String)
+data class GetNotificationsResponse(val notifications: MutableList<Notification>, val status: Int)
+interface GetNotificationsAPI {
+    @GET("getNotifications")
+    fun getNotifications(@Query("username") username: String?): Call<GetNotificationsResponse>
+}
+
+data class ReadNotificationRequest(val id: Int)
+data class ReadNotificationResponse(val message: String, val status: Int)
+interface ReadNotificationsAPI {
+    @POST("readNotification")
+    fun readNotification(@Body request: ReadNotificationRequest): Call<ReadNotificationResponse>
+}
 
 class FeedActivity: AppCompatActivity() {
 
@@ -29,22 +47,34 @@ class FeedActivity: AppCompatActivity() {
     private lateinit var icon2: ImageView
     private lateinit var icon3: ImageView
     private lateinit var icon4: ImageView
-
     private lateinit var toolbar: Toolbar
-
     private lateinit var mainFragmentContainer: FrameLayout
     private lateinit var fragmentManager: FragmentManager
+    private lateinit var  notificationIcon: ImageView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_feed)
 
         val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val fragmentSharedPreferences = sharedPreferences.getString("window", "")
+        var notifications: MutableList<Notification> = mutableListOf()
 
-        val notificationIcon: ImageView = findViewById(R.id.notificationIcon)
-        notificationIcon.setOnClickListener {
-            showNotificationMenu(it)
+        notificationIcon = findViewById(R.id.notificationIcon)
+        getUnreadNotificationsList { notificationsList ->
+            notifications = notificationsList
+
+            if(!(notificationsList.isEmpty())) {
+                notificationIcon.setImageResource(R.drawable.active_bell)
+            }
+            else {
+                notificationIcon.setImageResource(R.drawable.ic_bell)
+            }
         }
+        notificationIcon.setOnClickListener {
+            showNotificationMenu(it, notifications)
+        }
+
 
         mainFragmentContainer = findViewById(R.id.mainFragmentContainers)
         fragmentManager = supportFragmentManager
@@ -146,20 +176,74 @@ class FeedActivity: AppCompatActivity() {
         transaction.commit()
     }
 
-    private fun showNotificationMenu(view: View) {
+    private fun showNotificationMenu(view: View, notifications: MutableList<Notification>) {
         val popupMenu = PopupMenu(this, view)
-        popupMenu.inflate(R.menu.menu_notifications)
+        popupMenu.menu.clear() // Clear existing menu items
+
+        // Inflate menu items dynamically based on the list
+        for ((index, notification) in notifications.withIndex()) {
+            popupMenu.menu.add(Menu.NONE, index, Menu.NONE, notification.text)
+        }
 
         popupMenu.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.notification_item_1 -> {
-                    // Perform action when notification item is clicked
-                    Toast.makeText(this, "Notification clicked", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                // Add more cases for other menu items if needed
-                else -> false
+            // Perform action based on selected item's index
+            val selectedItemIndex = item.itemId
+            val selectedNotification = notifications[selectedItemIndex]
+
+            if (selectedNotification.type == "friendship_request") {
+                val alert = AlertDialog.Builder(this)
+                alert.setTitle("Message")
+                    .setMessage("Friendship request")
+                    .setPositiveButton("ACCEPT", DialogInterface.OnClickListener {dialog, which ->
+                        // Accept friendship request
+
+                    })
+                    .setNegativeButton("REFUSE", DialogInterface.OnClickListener { dialog, which ->
+                        // Refuse friendship request
+
+                    })
+                    .show()
             }
+
+            // Read notification
+            val request = ReadNotificationRequest(selectedNotification.id)
+
+            val readNotificationApiService = retrofit.create(ReadNotificationsAPI::class.java)
+            readNotificationApiService.readNotification(request).enqueue(object :
+                Callback<ReadNotificationResponse> {
+                override fun onResponse(call: Call<ReadNotificationResponse>, response: Response<ReadNotificationResponse>) {
+                    try {
+                        // Access the result using response.body()
+                        val result: ReadNotificationResponse? = response.body()
+
+                        // Check if the result is not null before accessing properties
+                        result?.let {
+                            val status = it.status
+                            if (status == 200) {
+                                notifications.remove(selectedNotification)
+                                Toast.makeText(this@FeedActivity, "Notification read!", Toast.LENGTH_SHORT).show()
+
+                                if(notifications.isEmpty()) {
+                                    notificationIcon.setImageResource(R.drawable.ic_bell)
+                                }
+                                else {}
+                            }
+                            else {
+                                Log.e("FeedActivity", "${status}")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Do nothing
+                        Log.e("FeedActivity", e.toString())
+                    }
+                }
+                override fun onFailure(call: Call<ReadNotificationResponse>, t: Throwable) {
+                    // Do nothing
+                    Log.e("FeedActivity", "${t.message}")
+                }
+            })
+
+            true
         }
 
         popupMenu.show()
@@ -172,7 +256,7 @@ class FeedActivity: AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.notification_item_1 -> {
+            R.id.notification_item -> {
                 // Handle notification menu item click here if needed
                 Toast.makeText(this, "Notification clicked", Toast.LENGTH_SHORT).show()
                 true
@@ -181,4 +265,39 @@ class FeedActivity: AppCompatActivity() {
         }
     }
 
+    private fun getUnreadNotificationsList(callback: (MutableList<Notification>) -> Unit) {
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", "")
+
+        val getNotificationsApiService = retrofit.create(GetNotificationsAPI::class.java)
+        getNotificationsApiService.getNotifications(username).enqueue(object :
+            Callback<GetNotificationsResponse> {
+            override fun onResponse(call: Call<GetNotificationsResponse>, response: Response<GetNotificationsResponse>) {
+                try {
+                    // Access the result using response.body()
+                    val result: GetNotificationsResponse? = response.body()
+                    var notifications: MutableList<Notification> = mutableListOf()
+
+                    // Check if the result is not null before accessing properties
+                    result?.let {
+                        val status = it.status
+                        if (status == 200) {
+                            notifications = it.notifications
+                        }
+                        else {
+                            Log.e("FeedActivity", "${status}")
+                        }
+                    }
+                    callback(notifications)
+                } catch (e: Exception) {
+                    // Do nothing
+                    Log.e("FeedActivity", e.toString())
+                }
+            }
+            override fun onFailure(call: Call<GetNotificationsResponse>, t: Throwable) {
+                // Do nothing
+                Log.e("FeedActivity", "${t.message}")
+            }
+        })
+    }
 }

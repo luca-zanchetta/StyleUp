@@ -72,7 +72,7 @@ except Exception as err:
 notification_drop = 'DROP TABLE IF EXISTS Notification;'
 notification_table = '''
 CREATE TABLE IF NOT EXISTS Notification (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
     type VARCHAR(100) NOT NULL,
     text VARCHAR(255) NOT NULL,
     username_from VARCHAR(100) NOT NULL,

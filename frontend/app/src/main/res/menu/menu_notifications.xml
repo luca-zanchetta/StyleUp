@@ -2,18 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/notification_item_1"
+        android:id="@+id/notification_item"
         android:title="Notification 1"
-        app:showAsAction="never"/>
-    <item
-        android:id="@+id/notification_item_2"
-        android:title="Notifica 2"
-        app:showAsAction="never"/>
-    <item
-        android:id="@+id/following_request_item"
-        android:title="Follow Notification"
-        app:showAsAction="always"
-        app:actionProviderClass="androidx.appcompat.widget.ShareActionProvider"/>
+        app:showAsAction="never" />
 
 </menu>
 

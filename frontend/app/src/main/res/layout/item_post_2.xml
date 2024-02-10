@@ -36,6 +36,12 @@
             android:textSize="16sp"
             android:textStyle="bold"/>
 
+        <TextView
+            android:id="@+id/numberOfLikes"
+            android:layout_width="20dp"
+            android:layout_height="wrap_content"
+            android:text="50" />
+
         <!-- Icona per il like -->
         <ImageView
             android:id="@+id/likeButton"

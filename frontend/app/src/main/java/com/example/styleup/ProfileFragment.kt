@@ -44,7 +44,7 @@ import androidx.appcompat.widget.PopupMenu
 data class DeleteAccountRequest(val username: String?)
 data class DeleteAccountResponse(val message: String, val status: Int)
 data class GetProfileImageResponse(val profile_image: String?, val status: Int)
-data class PostBackend2(val id: Int, val imageData: String, val username: String)
+data class PostBackend2(val id: Int, val imageData: String, val username: String, val likes: String, val likedByLoggedUser: Boolean)
 data class GetPostsResponse(val posts: List<PostBackend2>, val status: Int)
 interface DeleteAccountAPI {
     @POST("deleteAccount")
@@ -56,7 +56,7 @@ interface GetProfileImageAPI {
 }
 interface GetPostsByUsernameAPI {
     @GET("getPostsByUsername")
-    fun getPostsByUsername(@Query("username") username: String?):Call<GetPostsResponse>
+    fun getPostsByUsername(@Query("username") username: String?, @Query("loggedUser") loggedUser: String?):Call<GetPostsResponse>
 }
 val apiService = retrofit.create(DeleteAccountAPI::class.java)
 val apiService2 = retrofit.create(GetProfileImageAPI::class.java)
@@ -173,7 +173,7 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
         // Inizializza la RecyclerView e l'adapter
         postRecyclerView = view.findViewById(R.id.postRecyclerView)
         getSamplePosts { posts ->
-            postAdapter = PostAdapter(posts)
+            postAdapter = PostAdapter(requireContext(), posts)
             postRecyclerView.adapter = postAdapter
 
             // Imposta il layout manager per la RecyclerView (ad esempio, LinearLayoutManager)
@@ -231,10 +231,11 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
     private fun getSamplePosts(callback: (MutableList<Post>) -> Unit) {
         val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val username = sharedPreferences.getString("username", "")
+        val loggedUser = username
 
         var posts: MutableList<Post> = mutableListOf()
 
-        getPostsByUsernameApiService.getPostsByUsername(username).enqueue(object : Callback<GetPostsResponse> {
+        getPostsByUsernameApiService.getPostsByUsername(username, loggedUser).enqueue(object : Callback<GetPostsResponse> {
             override fun onResponse(call: Call<GetPostsResponse>, response: Response<GetPostsResponse>) {
                 val result: GetPostsResponse? = response.body()
 
@@ -246,12 +247,13 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
                             val id = post.id
                             val username = post.username
                             val encodedImage = post.imageData
-                            val liked = false
+                            val likes = post.likes
+                            val likedByLoggedUser = post.likedByLoggedUser
 
                             val originalBytes = Base64.decode(encodedImage, Base64.DEFAULT)
                             val bitmap = BitmapFactory.decodeByteArray(originalBytes, 0, originalBytes!!.size)
 
-                            val newPost = Post(id, username, bitmap, liked)
+                            val newPost = Post(id, username, bitmap, likes, likedByLoggedUser)
                             posts.add(newPost)
                         }
                     }

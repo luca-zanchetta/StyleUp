@@ -254,7 +254,6 @@ def delete_post():
     
     return jsonify({"message":"The post was successfully deleted!", "status":200})
 
-# Maybe there should be another api for the shirt try-on, but I don't know
 
 ############################## FRIENDS MANAGEMENT APIs ################################
 @app.route('/getUsers', methods=['GET'])
@@ -508,10 +507,12 @@ def get_friends_posts():
 @app.route('/getPostsByUsername', methods=['GET'])
 def get_posts_by_username():
     username = request.args.get('username')
+    loggedUser = request.args.get('loggedUser')
+    liked = False
     posts = []
 
     # Get posts
-    query = 'SELECT id, image_data, timestamp FROM Post WHERE username = %s;'
+    query = 'SELECT id, image_data, likes FROM Post WHERE username = %s;'
     values = (username,)
 
     curr.execute(query, values)
@@ -522,7 +523,16 @@ def get_posts_by_username():
         if elem[1] is None:
             print("ERROR")
         else:
-            post = {'id':elem[0], 'imageData':base64.b64encode(bytearray(elem[1])).decode('utf-8'), 'username':username}
+            query2 = 'SELECT person FROM Likes WHERE post = %s;'
+            values2 = (elem[0],)
+            
+            curr.execute(query2, values2)
+            result = curr.fetchall()
+            for element in result:
+                if element[0] == loggedUser:
+                    liked = True
+
+            post = {'id':elem[0], 'imageData':base64.b64encode(bytearray(elem[1])).decode('utf-8'), 'username':username, 'likes':str(elem[2]), 'likedByLoggedUser':liked}
             posts.append(post)
 
     if len(posts) == 0:
@@ -533,17 +543,60 @@ def get_posts_by_username():
 
 ########################### INTERACTIONS MANAGEMENT APIs #################################
 @app.route('/likePost', methods=['POST'])
-def like_post():        # TODO CHANGE LOGIC
+def like_post():
     data = request.get_json()
     username = data['username']
     post_id = data['post']
+    username_to = ""
+
+    # Get "like receiver"
+    query_get_post_owner = 'SELECT username FROM Post WHERE id = %s;'
+    values_get_post_owner = (post_id,)
+    curr.execute(query_get_post_owner, values_get_post_owner)
+    result = curr.fetchall()
+    for elem in result:
+        username_to = elem[0]
     
+    if username_to == "":
+        return jsonify({'message':'ERROR: There is no post having the provided ID.', 'status':500})
+
+    
+    # Insert the person who liked the post
     query = 'INSERT INTO Likes (person, post) VALUES (%s, %s);'
     values = (username, post_id)
     
     try:
         curr.execute(query, values)
         mydb.commit()
+
+
+        # Increase number of likes to that post
+        query2 = 'UPDATE Post SET likes = likes + 1 WHERE id = %s;'
+        values2 = (post_id,)
+
+        try:
+            curr.execute(query2, values2)
+            mydb.commit()
+
+
+            # Send notification to the like receiver (only if the like receiver is not myself! :P)
+            if username != username_to:
+                query3 = 'INSERT INTO Notification (type, text, username_from, username_to) VALUES (%s, %s, %s, %s);'
+                values3 = ('like', f'{username} liked your post.', username, username_to)
+
+                try:
+                    curr.execute(query3, values3)
+                    mydb.commit()
+                except Exception as err:
+                    print('[ERROR] There was an error while inserting the like: '+str(err))
+                    return jsonify({'message':'ERROR: Like operation was not successfully performed.', 'status':500})
+
+
+        except Exception as err:
+            print('[ERROR] There was an error while inserting the like: '+str(err))
+            return jsonify({'message':'ERROR: Like operation was not successfully performed.', 'status':500})
+
+
     except Exception as err:
         print('[ERROR] There was an error while inserting the like: '+str(err))
         return jsonify({'message':'ERROR: Like operation was not successfully performed.', 'status':500})
@@ -551,21 +604,35 @@ def like_post():        # TODO CHANGE LOGIC
     return jsonify({"message":"You liked the post successfully!", "status":200})
 
 
-@app.route('/getLikesByPost', methods=['GET'])
-def get_likes_by_post():    # TODO change logic
-    post_id = request.args.get('post')
-    usernames = []
+@app.route('/unlikePost', methods=['POST'])
+def unlike_post():
+    data = request.get_json()
+    username = data['username']
+    post_id = data['post']
+
+    query = 'DELETE FROM Likes WHERE person = %s AND post = %s;'
+    values = (username, post_id)
+
+    try:
+        curr.execute(query, values)
+        mydb.commit()
+
+        query2 = 'UPDATE Post SET likes = likes - 1 WHERE id = %s;'
+        values2 = (post_id,)
+
+        try:
+            curr.execute(query2, values2)
+            mydb.commit()
+        except Exception as err:
+            print('[ERROR] There was an error while removing the like: '+str(err))
+            return jsonify({'message':'ERROR: Unlike operation was not successfully performed.', 'status':500})
+
+
+    except Exception as err:
+        print('[ERROR] There was an error while removing the like: '+str(err))
+        return jsonify({'message':'ERROR: Unlike operation was not successfully performed.', 'status':500})
     
-    query = 'SELECT person FROM Likes WHERE post = %s;'
-    values = (post_id,)
-    
-    curr.execute(query, values)
-    result = curr.fetchall()
-    
-    for elem in result:
-        usernames.append(elem[0])
-    
-    return jsonify({"likes":usernames, "n_likes":len(usernames), "status":200})
+    return jsonify({"message":"You unliked the post successfully!", "status":200})
 
 
 

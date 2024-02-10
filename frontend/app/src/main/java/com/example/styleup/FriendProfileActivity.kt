@@ -68,7 +68,7 @@ class FriendProfileActivity : AppCompatActivity() {
             postRecyclerView = findViewById(R.id.postRecyclerView)
 
             getUserPosts(friendName) { postList ->
-                postAdapter = PostAdapter2(postList)
+                postAdapter = PostAdapter2(this, postList)
                 postRecyclerView.adapter = postAdapter
 
                 // Imposta il layout manager per la RecyclerView (ad esempio, LinearLayoutManager)
@@ -131,8 +131,10 @@ class FriendProfileActivity : AppCompatActivity() {
 
     private fun getUserPosts(username: String?, callback: (MutableList<Post>) -> Unit) {
         var posts: MutableList<Post> = mutableListOf()
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val loggedUser = sharedPreferences.getString("username", "")
 
-        getPostsByUsernameApiService.getPostsByUsername(username).enqueue(object : Callback<GetPostsResponse> {
+        getPostsByUsernameApiService.getPostsByUsername(username, loggedUser).enqueue(object : Callback<GetPostsResponse> {
             override fun onResponse(
                 call: Call<GetPostsResponse>,
                 response: Response<GetPostsResponse>
@@ -147,7 +149,8 @@ class FriendProfileActivity : AppCompatActivity() {
                             val id = post.id
                             val username = post.username
                             val encodedImage = post.imageData
-                            val liked = false
+                            val likes = post.likes
+                            val likedByLoggedUser = post.likedByLoggedUser
 
                             val originalBytes = Base64.decode(encodedImage, Base64.DEFAULT)
                             val bitmap = BitmapFactory.decodeByteArray(
@@ -156,7 +159,7 @@ class FriendProfileActivity : AppCompatActivity() {
                                 originalBytes!!.size
                             )
 
-                            val newPost = Post(id, username, bitmap, liked)
+                            val newPost = Post(id, username, bitmap, likes, likedByLoggedUser)
                             posts.add(newPost)
                         }
                     } else {

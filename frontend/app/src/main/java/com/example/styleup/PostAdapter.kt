@@ -24,7 +24,8 @@ data class Post(
     val id: Int,  // ID dell'immagine del post (R.drawable.example_image)
     val username: String,       // Nome utente dell'autore del post
     val imageData: Bitmap,
-    val liked: Boolean
+    val likes: String,
+    val likedByLoggedUser: Boolean
 )
 
 data class DeletePostRequest(val id: Int)
@@ -33,13 +34,30 @@ interface DeletePostAPI {
     @POST("deletePost")
     fun deletePost(@Body request: DeletePostRequest): Call<DeletePostResponse>
 }
-class PostAdapter(private val postList: List<Post>):
+
+data class LikePostRequest(val username: String?, val post: Int)
+data class LikePostResponse(val message: String, val status: Int)
+interface LikePostAPI {
+    @POST("likePost")
+    fun likePost(@Body request: LikePostRequest): Call<LikePostResponse>
+}
+
+data class UnlikePostRequest(val username: String?, val post: Int)
+data class UnlikePostResponse(val message: String, val status: Int)
+interface UnlikePostAPI {
+    @POST("unlikePost")
+    fun unlikePost(@Body request: UnlikePostRequest): Call<UnlikePostResponse>
+}
+
+
+class PostAdapter(private val context: Context, private val postList: List<Post>):
     RecyclerView.Adapter<PostAdapter.PostViewHolder>()  {
     class PostViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView) {
         val postToolbar: Toolbar = itemView.findViewById(R.id.postToolbar)
         val deletePostButton: ImageView = itemView.findViewById(R.id.deletePostButton)
         val postImage: ImageView = itemView.findViewById(R.id.postImage)
         val usernameText: TextView = itemView.findViewById(R.id.usernameText)
+        val numberOfLikes: TextView = itemView.findViewById(R.id.numberOfLikes)
         val likeButton: ImageView = itemView.findViewById(R.id.likeButton)
         var isLiked = false
     }
@@ -60,16 +78,84 @@ class PostAdapter(private val postList: List<Post>):
         // Imposta il nome utente
         holder.usernameText.text = currentPost.username
 
+        // Set number of likes
+        holder.numberOfLikes.text = currentPost.likes
+
+        if (currentPost.likedByLoggedUser) {
+            holder.likeButton.setImageResource(R.drawable.ic_like_filled)
+            holder.isLiked = true
+        }
+
         // Like button
         holder.likeButton.setOnClickListener {
             // Inverti lo stato del like
             holder.isLiked = !holder.isLiked
 
-            // Aggiorna l'immagine del pulsante Like in base allo stato attuale
             if (holder.isLiked) {
-                holder.likeButton.setImageResource(R.drawable.ic_like_filled) // Icona riempita del like
-            } else {
-                holder.likeButton.setImageResource(R.drawable.ic_like) // Icona del like vuota
+                // request likePost API
+                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val username = sharedPreferences.getString("username", "")
+                val likePostRequest = LikePostRequest(username, currentPost.id)
+
+                val likePostApiService = retrofit.create(LikePostAPI::class.java)
+                likePostApiService.likePost(likePostRequest).enqueue(object : Callback<LikePostResponse> {
+                    override fun onResponse(call: Call<LikePostResponse>, response: Response<LikePostResponse>) {
+                        try {
+                            // Access the result using response.body()
+                            val result: LikePostResponse? = response.body()
+
+                            // Check if the result is not null before accessing properties
+                            result?.let {
+                                val status = it.status
+                                if (status == 200) {
+                                    holder.likeButton.setImageResource(R.drawable.ic_like_filled)
+                                    holder.numberOfLikes.text = ((holder.numberOfLikes.text as String).toInt() + 1).toString()
+                                }
+                                else {
+                                    Log.e("PostAdapter", "${it.message}")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("PostAdapter", e.toString())
+                        }
+                    }
+                    override fun onFailure(call: Call<LikePostResponse>, t: Throwable) {
+                        Log.e("PostAdapter", "${t.message}")
+                    }
+                })
+            }
+            else {
+                // request unlikePost API
+                val sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val username = sharedPreferences.getString("username", "")
+                val unlikePostRequest = UnlikePostRequest(username, currentPost.id)
+
+                val unlikePostApiService = retrofit.create(UnlikePostAPI::class.java)
+                unlikePostApiService.unlikePost(unlikePostRequest).enqueue(object : Callback<UnlikePostResponse> {
+                    override fun onResponse(call: Call<UnlikePostResponse>, response: Response<UnlikePostResponse>) {
+                        try {
+                            // Access the result using response.body()
+                            val result: UnlikePostResponse? = response.body()
+
+                            // Check if the result is not null before accessing properties
+                            result?.let {
+                                val status = it.status
+                                if (status == 200) {
+                                    holder.likeButton.setImageResource(R.drawable.ic_like) // Icona del like vuota
+                                    holder.numberOfLikes.text = ((holder.numberOfLikes.text as String).toInt() - 1).toString()
+                                }
+                                else {
+                                    Log.e("PostAdapter", "${it.message}")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("PostAdapter", e.toString())
+                        }
+                    }
+                    override fun onFailure(call: Call<UnlikePostResponse>, t: Throwable) {
+                        Log.e("PostAdapter", "${t.message}")
+                    }
+                })
             }
         }
 

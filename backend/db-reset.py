@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS Post (
     username VARCHAR(100) NOT NULL,
     image_data LONGBLOB NOT NULL,
     timestamp DATETIME NOT NULL,
-    likes INT  NOT NULL DEFAULT 0,
+    likes INT NOT NULL DEFAULT 0,
     FOREIGN KEY (username) 
         REFERENCES Person (username)
         ON DELETE CASCADE
@@ -153,28 +153,28 @@ except Exception as err:
 
 
 # Likes table
-# likes_drop = 'DROP TABLE IF EXISTS Likes;'
-# likes_table = '''
-# CREATE TABLE IF NOT EXISTS Likes (
-#     person VARCHAR(100) NOT NULL,
-#     post INT NOT NULL,
-#     CONSTRAINT PK_likes 
-#         PRIMARY KEY (person, post),
-#     FOREIGN KEY (person) 
-#         REFERENCES Person(username)
-#         ON DELETE CASCADE,
-#     FOREIGN KEY (post) 
-#         REFERENCES Post(id)
-#         ON DELETE CASCADE
-# );
-# '''
-# try:
-#     mycursor.execute(likes_drop)
-#     mycursor.execute(likes_table)
-#     mydb.commit()
-#     print('[INFO] Table \'Likes\' successfully created.')
-# except Exception as err:
-#     print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+str(err))
+likes_drop = 'DROP TABLE IF EXISTS Likes;'
+likes_table = '''
+CREATE TABLE IF NOT EXISTS Likes (
+    person VARCHAR(100) NOT NULL,
+    post INT NOT NULL,
+    CONSTRAINT PK_likes 
+        PRIMARY KEY (person, post),
+    FOREIGN KEY (person) 
+        REFERENCES Person(username)
+        ON DELETE CASCADE,
+    FOREIGN KEY (post) 
+        REFERENCES Post(id)
+        ON DELETE CASCADE
+);
+'''
+try:
+    mycursor.execute(likes_drop)
+    mycursor.execute(likes_table)
+    mydb.commit()
+    print('[INFO] Table \'Likes\' successfully created.')
+except Exception as err:
+    print('[ERROR] Something went wrong during the creation of the table \'Likes\': '+str(err))
 
 
 # Load images into the database

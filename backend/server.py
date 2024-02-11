@@ -314,7 +314,6 @@ def get_user_by_username():
         else:
             return_user = {'username':str(user[0]), 'profileImage':""}
             
-        print(f"[INFO] return_user: {return_user}")
         return jsonify({'user':return_user, 'status':200})
     
     return jsonify({'user':[], 'status':404})
@@ -358,12 +357,12 @@ def read_notification():
 @app.route('/sendFriendshipRequest', methods=['POST'])
 def send_friendship_request():
     data = request.get_json()
-    username_from = data['username_from']
-    username_to = data['username_to']
+    username_from = data['usernameFrom']
+    username_to = data['usernameTo']
 
     # Register Notification
     query_notification = 'INSERT INTO Notification (type, text, username_from, username_to) VALUES (%s, %s, %s, %s);'
-    values_notification = ('friendship_request', f'{username_from} wants to be your friend!', username_from, username_to,)
+    values_notification = ('friendship_request', f'{username_from} wants to be your friend :D', username_from, username_to,)
 
     try:
         curr.execute(query_notification, values_notification)
@@ -375,7 +374,7 @@ def send_friendship_request():
 
     # Register pending state in friend_of
     query_friend_of = 'INSERT INTO Friend_of (person1, person2, pending) VALUES (%s, %s, %s);'
-    values_friend_of = (username_from, username_to, True)
+    values_friend_of = (username_from, username_to, 1)
     
     try:
         curr.execute(query_friend_of, values_friend_of)
@@ -383,36 +382,34 @@ def send_friendship_request():
     except Exception as err:
         print('[ERROR] There was an error while sending the friendship request: '+str(err))
         return jsonify({'message':'ERROR: Send friendship request operation was not successfully performed.', 'status':500})
-    
-
-    # TODO Send notification to user
 
 
-    return jsonify({"message":"WORK IN PROGRESS...", "status":202})
+    return jsonify({"message":"Friendship request sent successfully!", "status":200})
 
 
 @app.route('/acceptFriendshipRequest', methods=['POST'])
 def accept_friendship_request():
     data = request.get_json()
-    notification_id = data['id']
-    username_from = None
-    username_to = None
+    notification_id = data['notificationId']
+    username_from = ""
+    username_to = ""
 
 
     # Retrieve usernames from notification
-    query_notification = 'SELECT username_from, username_to FROM Notification WHERE id = %s;'
+    query_notification = 'SELECT username_from, username_to FROM Notification WHERE notification_id = %s;'
     values_notification = (notification_id,)
 
     curr.execute(query_notification, values_notification)
     result = curr.fetchone()
-    if result is not None:
-        username_from = result[0]
-        username_to = result[1]
+    username_from = result[0]
+    username_to = result[1]
+
+    print(f"[INFO] username_from = {username_from}; username_to = {username_to}")
     
 
     # Update pending status in Friend_of
     query_friend_of = 'UPDATE Friend_of SET pending = %s WHERE (person1 = %s AND person2 = %s) OR (person1 = %s AND person2 = %s);'
-    values_friend_of = (False, username_from, username_to, username_to, username_from,)
+    values_friend_of = (0, username_from, username_to, username_to, username_from,)
     try:
         curr.execute(query_friend_of, values_friend_of)
         mydb.commit()
@@ -426,13 +423,13 @@ def accept_friendship_request():
 @app.route('/refuseFriendshipRequest', methods=['POST'])
 def refuse_friendship_request():
     data = request.get_json()
-    notification_id = data['id']
+    notification_id = data['notificationId']
     username_from = None
     username_to = None
 
 
     # Retrieve usernames from notification
-    query_notification = 'SELECT username_from, username_to FROM Notification WHERE id = %s;'
+    query_notification = 'SELECT username_from, username_to FROM Notification WHERE notification_id = %s;'
     values_notification = (notification_id,)
 
     curr.execute(query_notification, values_notification)
@@ -514,7 +511,6 @@ def get_friends_posts():
         
     if len(posts) == 0:
         return jsonify({"message":"No posts found.", "status":404})
-        
 
     # Order the posts by temporal order
     sorted_posts = sorted(posts, key=get_timestamp)
@@ -565,9 +561,9 @@ def get_friends():
     friends = set()
     friends_list = []
 
-    query1 = 'SELECT person1 FROM Friend_of WHERE person2 = %s;'
-    query2 = 'SELECT person2 FROM Friend_of WHERE person1 = %s;'
-    values = (username,)
+    query1 = 'SELECT person1 FROM Friend_of WHERE person2 = %s AND pending=%s;'
+    query2 = 'SELECT person2 FROM Friend_of WHERE person1 = %s AND pending=%s;'
+    values = (username, 0)
 
     curr.execute(query1, values)
     result = curr.fetchall()
@@ -594,16 +590,19 @@ def are_friends():
     user1 = data['user1']
     user2 = data['user2']
 
-    query = 'SELECT * FROM Friend_of WHERE ((person1=%s AND person2=%s) OR (person2=%s AND person1=%s)) AND pending=%s;'
-    values = (user1, user2, user1, user2, 0)
+    query = 'SELECT pending FROM Friend_of WHERE ((person1=%s AND person2=%s) OR (person2=%s AND person1=%s));'
+    values = (user1, user2, user1, user2)
 
     curr.execute(query, values)
     result = curr.fetchall()
 
     for elem in result:
-        return jsonify({'result':True, 'status':200})
+        if elem[0] == 0:
+            return jsonify({'result':0, 'status':200})
+        elif elem[0] == 1:
+            return jsonify({'result':1, 'status':200})
     
-    return jsonify({'result':False, 'status':201})
+    return jsonify({'result':2, 'status':200})
 
 
 

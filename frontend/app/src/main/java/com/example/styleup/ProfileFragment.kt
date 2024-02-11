@@ -240,10 +240,8 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
     private fun updatePostList(samplePosts: List<Post>) {
         // Controlla se l'elenco dei post è vuoto e imposta la visibilità di conseguenza
         if (samplePosts.isEmpty()) {
-            Log.d("ProfileFragment", "EMPTY")
             noPostsMessage.visibility = View.VISIBLE
         } else {
-            Log.d("ProfileFragment", "NOT EMPTY")
             noPostsMessage.visibility = View.GONE
         }
     }

@@ -22,6 +22,7 @@ import androidx.fragment.app.FragmentTransaction
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.create
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -39,6 +40,20 @@ data class ReadNotificationResponse(val message: String, val status: Int)
 interface ReadNotificationsAPI {
     @POST("readNotification")
     fun readNotification(@Body request: ReadNotificationRequest): Call<ReadNotificationResponse>
+}
+
+data class AcceptFriendshipRequestRequest(val notificationId: Int)
+data class AcceptFriendshipRequestResponse(val message: String, val status: Int)
+interface AcceptFriendshipRequestAPI {
+    @POST("acceptFriendshipRequest")
+    fun acceptFriendshipRequest(@Body request: AcceptFriendshipRequestRequest): Call<AcceptFriendshipRequestResponse>
+}
+
+data class RefuseFriendshipRequestRequest(val notificationId: Int)
+data class RefuseFriendshipRequestResponse(val message: String, val status: Int)
+interface RefuseFriendshipRequestAPI {
+    @POST("refuseFriendshipRequest")
+    fun refuseFriendshipRequest(@Body request: RefuseFriendshipRequestRequest): Call<RefuseFriendshipRequestResponse>
 }
 
 class FeedActivity: AppCompatActivity() {
@@ -164,8 +179,6 @@ class FeedActivity: AppCompatActivity() {
         icon4.setOnClickListener {
             val mapFragment = MapFragment()
             setMainFragment(mapFragment)
-            //val intent = Intent(this, MapActivity::class.java)
-            //startActivity(intent)
         }
 
     }
@@ -192,14 +205,75 @@ class FeedActivity: AppCompatActivity() {
 
             if (selectedNotification.type == "friendship_request") {
                 val alert = AlertDialog.Builder(this)
-                alert.setTitle("Message")
-                    .setMessage("Friendship request")
+                alert.setTitle("Friendship request")
+                    .setMessage(selectedNotification.text)
                     .setPositiveButton("ACCEPT", DialogInterface.OnClickListener {dialog, which ->
                         // Accept friendship request
+                        val request = AcceptFriendshipRequestRequest(selectedNotification.id)
+                        val acceptFriendshipRequestApiService = retrofit.create(AcceptFriendshipRequestAPI::class.java)
+
+                        acceptFriendshipRequestApiService.acceptFriendshipRequest(request).enqueue(object :
+                            Callback<AcceptFriendshipRequestResponse> {
+                            override fun onResponse(call: Call<AcceptFriendshipRequestResponse>, response: Response<AcceptFriendshipRequestResponse>) {
+                                try {
+                                    // Access the result using response.body()
+                                    val result: AcceptFriendshipRequestResponse? = response.body()
+
+                                    // Check if the result is not null before accessing properties
+                                    result?.let {
+                                        val status = it.status
+                                        if (status == 200) {
+
+                                        }
+                                        else {
+                                            Log.e("FeedActivity", "${status}")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    // Do nothing
+                                    Log.e("FeedActivity", e.toString())
+                                }
+                            }
+                            override fun onFailure(call: Call<AcceptFriendshipRequestResponse>, t: Throwable) {
+                                // Do nothing
+                                Log.e("FeedActivity", "${t.message}")
+                            }
+                        })
 
                     })
                     .setNegativeButton("REFUSE", DialogInterface.OnClickListener { dialog, which ->
                         // Refuse friendship request
+
+                        val request = RefuseFriendshipRequestRequest(selectedNotification.id)
+                        val refuseFriendshipRequestApiService = retrofit.create(RefuseFriendshipRequestAPI::class.java)
+
+                        refuseFriendshipRequestApiService.refuseFriendshipRequest(request).enqueue(object :
+                            Callback<RefuseFriendshipRequestResponse> {
+                            override fun onResponse(call: Call<RefuseFriendshipRequestResponse>, response: Response<RefuseFriendshipRequestResponse>) {
+                                try {
+                                    // Access the result using response.body()
+                                    val result: RefuseFriendshipRequestResponse? = response.body()
+
+                                    // Check if the result is not null before accessing properties
+                                    result?.let {
+                                        val status = it.status
+                                        if (status == 200) {
+
+                                        }
+                                        else {
+                                            Log.e("FeedActivity", "${status}")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    // Do nothing
+                                    Log.e("FeedActivity", e.toString())
+                                }
+                            }
+                            override fun onFailure(call: Call<RefuseFriendshipRequestResponse>, t: Throwable) {
+                                // Do nothing
+                                Log.e("FeedActivity", "${t.message}")
+                            }
+                        })
 
                     })
                     .show()

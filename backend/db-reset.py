@@ -1,7 +1,7 @@
 import mysql.connector
 import os
 
-print('\n[INFO] Resetting data...\n')
+print('\n[INFO] Resetting database...\n')
 
 # Creation of the database
 mydb = mysql.connector.connect(

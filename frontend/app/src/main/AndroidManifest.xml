@@ -51,8 +51,6 @@
             android:name=".ConfirmPhotoActivity"
             android:label="ConfirmPhotoActivity" />
 
-        <activity android:name=".MapActivity" android:label="MapActivity" />
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDFd5P6G3KmqC3gv1AF8iTSD84AeYCBNG0" />

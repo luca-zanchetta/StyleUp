@@ -47,6 +47,8 @@ data class GetProfileImageResponse(val profile_image: String?, val status: Int)
 data class PostBackend2(val id: Int, val imageData: String, val username: String, val likes: String, val likedByLoggedUser: Boolean)
 data class GetPostsResponse(val posts: List<PostBackend2>, val status: Int)
 data class GetFriendsResponse(val friends: MutableList<String>, val status: Int)
+data class RemoveFriendRequest(val usernameFrom: String?, val usernameTo: String?)
+data class RemoveFriendResponse(val message: String, val status: Int)
 
 interface DeleteAccountAPI {
     @POST("deleteAccount")
@@ -64,6 +66,11 @@ interface GetPostsByUsernameAPI {
 interface GetFriendsAPI {
     @GET("getFriends")
     fun getFriends(@Query("username") username: String?): Call<GetFriendsResponse>
+}
+
+interface RemoveFriendAPI {
+    @POST("removeFriend")
+    fun removeFriend(@Body request: RemoveFriendRequest): Call<RemoveFriendResponse>
 }
 
 val apiService = retrofit.create(DeleteAccountAPI::class.java)
@@ -222,18 +229,56 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
     }
 
     override fun onRemoveFriendClicked(friendName: String) {
-        showConfirmationDialog(friendName)
-    }
-
-    private fun showConfirmationDialog(friend: String) {
         val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("Delete friend")
-            .setMessage("Vuoi davvero eliminare $friend?")
-            .setPositiveButton("Conferma") { dialog, which ->
-                // Elimina l'amico
-                Toast.makeText(requireContext(), "Amico $friend eliminato", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Annulla", null)
+        builder.setTitle("Remove friend")
+            .setMessage("Do you really want to remove ${friendName}?")
+            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, which ->
+                val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val username = sharedPreferences.getString("username", "")
+
+                val request = RemoveFriendRequest(username, friendName)
+                val removeFriendApiService = retrofit.create(RemoveFriendAPI::class.java)
+                removeFriendApiService.removeFriend(request).enqueue(object : Callback<RemoveFriendResponse> {
+                    override fun onResponse(call: Call<RemoveFriendResponse>, response: Response<RemoveFriendResponse>) {
+                        val result: RemoveFriendResponse? = response.body()
+
+                        // Check if the result is not null before accessing properties
+                        result?.let { it ->
+                            val status = it.status
+                            if (status == 200) {
+                                // Delete operation was successful
+                                val editor = sharedPreferences.edit()
+                                editor.putString("window", "profile")
+                                editor.apply()
+
+                                val intent = Intent(requireContext(), FeedActivity::class.java)
+                                startActivity(intent)
+                            }
+                            else {
+                                val ko = AlertDialog.Builder(requireContext())
+                                ko.setTitle("ERROR")
+                                    .setMessage("${it.message}")
+                                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                        // Do nothing :)
+                                    })
+                                    .show()
+                            }
+                        }
+                    }
+                    override fun onFailure(call: Call<RemoveFriendResponse>, t: Throwable) {
+                        val ko = AlertDialog.Builder(requireContext())
+                        ko.setTitle("ERROR")
+                            .setMessage("${t.message}")
+                            .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                                // Do nothing :)
+                            })
+                            .show()
+                    }
+                })
+            })
+            .setNegativeButton("No", DialogInterface.OnClickListener { dialog, which ->
+                // Do nothing :)
+            })
             .show()
     }
 

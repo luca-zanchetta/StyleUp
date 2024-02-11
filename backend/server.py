@@ -455,8 +455,8 @@ def refuse_friendship_request():
 @app.route('/removeFriend', methods=['POST'])
 def remove_friend():
     data = request.get_json()
-    username_from = data['username_from']
-    username_to = data['username_to']
+    username_from = data['usernameFrom']
+    username_to = data['usernameTo']
 
     # Remove friendship
     query_friend_of = 'DELETE FROM Friend_of WHERE (person1 = %s AND person2 = %s) OR (person1 = %s AND person2 = %s);'

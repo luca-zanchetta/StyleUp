@@ -107,7 +107,7 @@ friend_of_table = '''
 CREATE TABLE IF NOT EXISTS Friend_of (
     person1 VARCHAR(100) NOT NULL,
     person2 VARCHAR(100) NOT NULL,
-    pending BOOLEAN NOT NULL,
+    pending TINYINT NOT NULL DEFAULT 1,
     CONSTRAINT PK_Friend_of 
         PRIMARY KEY (person1, person2),
     FOREIGN KEY (person1) 

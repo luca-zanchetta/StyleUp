@@ -46,6 +46,8 @@ data class DeleteAccountResponse(val message: String, val status: Int)
 data class GetProfileImageResponse(val profile_image: String?, val status: Int)
 data class PostBackend2(val id: Int, val imageData: String, val username: String, val likes: String, val likedByLoggedUser: Boolean)
 data class GetPostsResponse(val posts: List<PostBackend2>, val status: Int)
+data class GetFriendsResponse(val friends: MutableList<String>, val status: Int)
+
 interface DeleteAccountAPI {
     @POST("deleteAccount")
     fun deleteAccount(@Body request: DeleteAccountRequest): Call<DeleteAccountResponse>
@@ -58,6 +60,12 @@ interface GetPostsByUsernameAPI {
     @GET("getPostsByUsername")
     fun getPostsByUsername(@Query("username") username: String?, @Query("loggedUser") loggedUser: String?):Call<GetPostsResponse>
 }
+
+interface GetFriendsAPI {
+    @GET("getFriends")
+    fun getFriends(@Query("username") username: String?): Call<GetFriendsResponse>
+}
+
 val apiService = retrofit.create(DeleteAccountAPI::class.java)
 val apiService2 = retrofit.create(GetProfileImageAPI::class.java)
 val getPostsByUsernameApiService = retrofit.create(GetPostsByUsernameAPI::class.java)
@@ -187,18 +195,30 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
     }
 
     private fun showFriendList() {
-        val friends = listOf("Friend 1", "Friend 2", "Friend 3")
-        val adapter = FriendListAdapter(friends, this)
-        val listView = ListView(requireContext())
-        listView.adapter = adapter
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Friends")
-            .setView(listView)
-            .setNegativeButton("Close") { dialog, _ ->
-                dialog.dismiss()
+        getFriends { friendsList ->
+            if(friendsList.isEmpty()) {
+                val ko = AlertDialog.Builder(requireContext())
+                ko.setTitle("ERROR")
+                    .setMessage("You have no friends :(")
+                    .setPositiveButton("OK", DialogInterface.OnClickListener {dialog, which ->
+                        // Do nothing :)
+                    })
+                    .show()
             }
-            .show()
+            else {
+                val adapter = FriendListAdapter(friendsList, this)
+                val listView = ListView(requireContext())
+                listView.adapter = adapter
+
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Friends")
+                    .setView(listView)
+                    .setNegativeButton("Close") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
+        }
     }
 
     override fun onRemoveFriendClicked(friendName: String) {
@@ -264,6 +284,40 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
                 callback(posts)
             }
             override fun onFailure(call: Call<GetPostsResponse>, t: Throwable) {
+                Log.e("ProfileFragment", "${t.message}")
+            }
+
+        })
+    }
+
+    private fun getFriends(callback: (MutableList<String>) -> Unit) {
+        val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", "")
+        val loggedUser = username
+
+        var friends: MutableList<String> = mutableListOf()
+        val getFriendsApiService = retrofit.create(GetFriendsAPI::class.java)
+
+
+        getFriendsApiService.getFriends(loggedUser).enqueue(object : Callback<GetFriendsResponse> {
+            override fun onResponse(call: Call<GetFriendsResponse>, response: Response<GetFriendsResponse>) {
+                val result: GetFriendsResponse? = response.body()
+
+                // Check if the result is not null before accessing properties
+                result?.let { it ->
+                    val status = it.status
+                    if (status == 200) {
+                        for (elem in it.friends) {
+                            friends.add(elem)
+                        }
+                    }
+                    else {
+                        Log.e("ProfileFragment", "No friends :(")
+                    }
+                }
+                callback(friends)
+            }
+            override fun onFailure(call: Call<GetFriendsResponse>, t: Throwable) {
                 Log.e("ProfileFragment", "${t.message}")
             }
 
@@ -339,7 +393,6 @@ class ProfileFragment: Fragment(), FriendItemClickListener {
     fun setUsername(username: String?) {
         usernameText.text = username
     }
-
 }
 
 class FriendListAdapter(

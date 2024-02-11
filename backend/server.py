@@ -559,6 +559,54 @@ def get_posts_by_username():
     return jsonify({"posts":posts, "status":200})
 
 
+@app.route('/getFriends', methods=['GET'])
+def get_friends():
+    username = request.args.get('username')
+    friends = set()
+    friends_list = []
+
+    query1 = 'SELECT person1 FROM Friend_of WHERE person2 = %s;'
+    query2 = 'SELECT person2 FROM Friend_of WHERE person1 = %s;'
+    values = (username,)
+
+    curr.execute(query1, values)
+    result = curr.fetchall()
+    for elem in result:
+        friends.add(elem[0])
+
+    curr.execute(query2, values)
+    result = curr.fetchall()
+    for elem in result:
+        friends.add(elem[0])
+
+    for elem in friends:
+        friends_list.append(elem)
+
+    if len(friends_list) == 0:
+        return jsonify({'friends':[], 'status':404})
+    
+    return jsonify({'friends':friends_list, 'status':200})
+
+
+@app.route('/areFriends', methods=['POST'])
+def are_friends():
+    data = request.get_json()
+    user1 = data['user1']
+    user2 = data['user2']
+
+    query = 'SELECT * FROM Friend_of WHERE ((person1=%s AND person2=%s) OR (person2=%s AND person1=%s)) AND pending=%s;'
+    values = (user1, user2, user1, user2, 0)
+
+    curr.execute(query, values)
+    result = curr.fetchall()
+
+    for elem in result:
+        return jsonify({'result':True, 'status':200})
+    
+    return jsonify({'result':False, 'status':201})
+
+
+
 ########################### INTERACTIONS MANAGEMENT APIs #################################
 @app.route('/likePost', methods=['POST'])
 def like_post():

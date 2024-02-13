@@ -59,7 +59,7 @@ In order to correctly launch the application, the user must have:
 
 ## Installation and Launch
 
-The application can be downloaded by clicking this [link](some_link). Once you have downloaded and installed the application, ensure you're in the following setting **before executing it**:
+The application can be downloaded by clicking this [link](https://github.com/luca-zanchetta/StyleUp/blob/main/styleup.apk). Once you have downloaded and installed the application, ensure you're in the following setting **before executing it**:
 - Ensure that your smartphone is in **light mode**;
 - Ensure to have your current location turned on;
 - Ensure you have an active Internet connection.

@@ -2,7 +2,7 @@
 
 **Presented by:**
 - Luca Zanchetta, 1848878
-- Camilla Iorio, 
+- Camilla Iorio, 1852512
 
 ## Index
 - [Introduction](#introduction)
